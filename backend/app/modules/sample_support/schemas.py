@@ -98,3 +98,15 @@ class SampleSupportListResponse(BaseModel):
     message: str = "Records fetched successfully"
     data: dict
 
+
+class SampleSupportAllResponse(BaseModel):
+    success: bool = True
+    message: str = "All records fetched successfully"
+    data: list[SampleSupportItem]
+
+
+class SampleSupportSingleResponse(BaseModel):
+    success: bool = True
+    message: str = "Sample support record fetched successfully"
+    data: SampleSupportItem
+

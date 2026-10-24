@@ -248,3 +248,50 @@ def list_topics(db: Session) -> list[dict[str, Any]]:
         FROM public.awareness_topic_master WHERE is_active
         ORDER BY sort_order, awareness_topic_name
     """)).mappings().all()]
+
+
+def get_by_id(db: Session, awareness_id: int) -> dict[str, Any] | None:
+    row = db.execute(
+        text(
+            """
+            SELECT
+                a.awareness_id,
+                a.awareness_code,
+                a.volunteer_id,
+                vr.volunteer_name,
+                a.awareness_activity_id,
+                aam.awareness_activity_name,
+                a.activity_date,
+                a.village_lgd_code,
+                vh.village_name,
+                a.people_reached,
+                a.awareness_topic_id,
+                atm.awareness_topic_name,
+                a.topic_other,
+                a.department_id,
+                dm.department_name,
+                a.department_other,
+                a.verification_status,
+                a.captured_at,
+                a.created_at
+            FROM public.awareness_activity a
+            JOIN public.volunteer_registration vr
+              ON vr.volunteer_id = a.volunteer_id
+            JOIN public.awareness_activity_master aam
+              ON aam.awareness_activity_id = a.awareness_activity_id
+            JOIN public.v_village_hierarchy vh
+              ON vh.village_lgd_code = a.village_lgd_code
+            LEFT JOIN public.awareness_topic_master atm
+              ON atm.awareness_topic_id = a.awareness_topic_id
+            LEFT JOIN public.department_master dm
+              ON dm.department_id = a.department_id
+            WHERE a.awareness_id = :awareness_id
+            """
+        ),
+        {"awareness_id": awareness_id},
+    ).mappings().one_or_none()
+    if not row:
+        return None
+    item = dict(row)
+    add_attachments(db, item["volunteer_id"], [item])
+    return item

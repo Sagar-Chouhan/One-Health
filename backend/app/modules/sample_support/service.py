@@ -82,8 +82,43 @@ def list_samples(db: Session, volunteer_id: int, query) -> dict:
     }
 
 
-def get_sample(db: Session, volunteer_id: int, sample_id: int) -> dict:
-    row = repository.get_one(db, volunteer_id, sample_id)
-    if row is None:
-        raise HTTPException(404, "Sample support record not found.")
-    return {"success": True, "message": "Record fetched successfully", "data": row}
+def list_all_samples(db: Session, volunteer_id: int) -> list[dict]:
+    return repository.list_all(db, volunteer_id)
+
+
+def get_sample(
+    db: Session,
+    sample_id: int,
+    volunteer_id: int | None = None,
+    supervisor_id: int | None = None,
+) -> dict:
+    if sample_id <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="sample_id must be a positive integer greater than zero.",
+        )
+
+    raw = db.execute(
+        text("SELECT volunteer_id FROM public.sample_support WHERE sample_id = :id"),
+        {"id": sample_id},
+    ).mappings().one_or_none()
+    if not raw:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "SAMPLE_NOT_FOUND",
+                "message": f"Sample support record with ID {sample_id} was not found.",
+            },
+        )
+
+    if volunteer_id is not None and raw["volunteer_id"] != volunteer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "FORBIDDEN",
+                "message": "You are not authorized to view this sample support record.",
+            },
+        )
+
+    row = repository.get_one(db, raw["volunteer_id"], sample_id)
+    return row

@@ -132,3 +132,9 @@ class AwarenessAllResponse(BaseModel):
     success: bool = True
     message: str = "All records fetched successfully"
     data: list[AwarenessActivityItem]
+
+
+class AwarenessSingleResponse(BaseModel):
+    success: bool = True
+    message: str = "Awareness activity fetched successfully"
+    data: AwarenessActivityItem

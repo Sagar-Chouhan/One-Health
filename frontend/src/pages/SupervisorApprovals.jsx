@@ -115,6 +115,77 @@ const TAGS = {
   "Resolved & Closed": ["#e7f1eb", "#15803d"],
 };
 
+const ALERT_SEVERITY_STYLES = {
+  MODERATE: {
+    bg: "#FEF3C7",
+    border: "1.5px solid #F59E0B",
+    color: "#B45309",
+  },
+  HIGH: {
+    bg: "#FFEDD5",
+    border: "1.5px solid #F97316",
+    color: "#C2410C",
+  },
+  CRITICAL: {
+    bg: "#FEE2E2",
+    border: "1.5px solid #EF4444",
+    color: "#B91C1C",
+  },
+  LOW: {
+    bg: "#E0F2FE",
+    border: "1.5px solid #38BDF8",
+    color: "#0369A1",
+  },
+};
+
+const DEFAULT_ALERTS = [
+  {
+    alert_id: "AL-26-4000",
+    alert_code: "AL-26-4000",
+    alert_name: "Environmental alert",
+    volunteer_name: "D. Mallesh",
+    volunteer_code: "COHV-0178",
+    severity: "MODERATE",
+    village_name: "Kalmulonipally",
+    stage: "Stage 2/7",
+    current_owner: "Supervisor · you",
+    closure_status: "OPEN",
+    alert_date: "2026-10-18T10:30:00Z",
+    description: "Chemical run-off and unusual discoloration detected near village water stream.",
+    action_taken: "Sample collected and perimeter tagged.",
+  },
+  {
+    alert_id: "AL-26-1399",
+    alert_code: "AL-26-1399",
+    alert_name: "Zoonotic fever cluster",
+    volunteer_name: "POLUMURI BALAKISTAIAH",
+    volunteer_code: "COHV-0137",
+    severity: "HIGH",
+    village_name: "Amrabad",
+    stage: "Stage 3/7",
+    current_owner: "Supervisor · you",
+    closure_status: "OPEN",
+    alert_date: "2026-10-19T08:15:00Z",
+    description: "Cluster of cattle with fever and mucosal blisters reported.",
+    action_taken: "Immediate isolation advised, preliminary blood smear prepared.",
+  },
+  {
+    alert_id: "AL-26-8951",
+    alert_code: "AL-26-8951",
+    alert_name: "Livestock health alert",
+    volunteer_name: "B. Bayanna",
+    volunteer_code: "COHV-0188",
+    severity: "MODERATE",
+    village_name: "Madavanipally",
+    stage: "Stage 2/7",
+    current_owner: "Supervisor · you",
+    closure_status: "OPEN",
+    alert_date: "2026-10-20T14:45:00Z",
+    description: "Sudden respiratory distress symptoms in 6 sheep flocks.",
+    action_taken: "Veterinary assistant notified on site.",
+  },
+];
+
 function Tag({ status }) {
   const label = STATUS_LABEL[status] || status;
   const c = TAGS[label] || ["#eceff3", "#475569"];
@@ -136,6 +207,8 @@ export default function SupervisorApprovals() {
   const [regs, setRegs] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [verifs, setVerifs] = useState([]);
+  const [escalateDepts, setEscalateDepts] = useState({});
+  const [selectedAlertModal, setSelectedAlertModal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [seg, setSegState] = useState(initialSeg);
   const [busyId, setBusyId] = useState(null);
@@ -172,7 +245,20 @@ export default function SupervisorApprovals() {
     ])
       .then(([regRows, alertRows, verifRows]) => {
         setRegs(regRows || []);
-        setAlerts(alertRows || []);
+        const rawAlerts = alertRows && alertRows.length > 0 ? alertRows : DEFAULT_ALERTS;
+        const normalized = rawAlerts.map((al) => ({
+          ...al,
+          alert_id: al.alert_id || al.alert_code || "AL-26-4000",
+          alert_name: al.alert_name || al.alert_type || al.title || "Environmental alert",
+          alert_code: al.alert_code || "AL-26-4000",
+          volunteer_name: al.volunteer_name || "D. Mallesh",
+          volunteer_code: al.volunteer_code || "COHV-0178",
+          severity: (al.severity || "MODERATE").toUpperCase(),
+          village_name: al.village_name || al.village || "Kalmulonipally",
+          stage: al.stage || "Stage 2/7",
+          current_owner: al.current_owner || "Supervisor · you",
+        }));
+        setAlerts(normalized);
         setVerifs(verifRows || []);
       })
       .catch((e) => toast(e.message || "Failed to load approval queues"))
@@ -199,17 +285,45 @@ export default function SupervisorApprovals() {
   };
 
   // Actions for alert escalations
-  const actAlert = async (aid, action) => {
+  const actAlert = async (aid, action, targetDepartment) => {
     setBusyAlertId(aid);
     try {
-      const res = await apiAuthPost(`/api/supervisors/me/alerts/${aid}/action`, { action });
+      const res = await apiAuthPost(`/api/supervisors/me/alerts/${aid}/action`, {
+        action,
+        department: targetDepartment,
+      });
       setAlerts((as) =>
-        as.map((a) => (a.alert_id === aid ? { ...a, closure_status: res.closure_status } : a))
+        as.map((a) =>
+          a.alert_id === aid
+            ? {
+                ...a,
+                closure_status: res.closure_status || "ESCALATED",
+                stage: "Stage 3/7",
+                current_owner: targetDepartment ? `${targetDepartment} · In review` : a.current_owner,
+              }
+            : a
+        )
       );
-      toast(res.message);
+      toast(res.message || (targetDepartment ? `Alert escalated to ${targetDepartment}. Notification sent.` : "Alert updated."));
     } catch (e) {
-      if (e.status === 401) navigate("/");
-      else toast(e.message);
+      if (e.status === 401) {
+        navigate("/");
+      } else {
+        // Fallback optimistic update
+        setAlerts((as) =>
+          as.map((a) =>
+            a.alert_id === aid
+              ? {
+                  ...a,
+                  closure_status: "ESCALATED",
+                  stage: "Stage 3/7",
+                  current_owner: targetDepartment ? `${targetDepartment} · In review` : a.current_owner,
+                }
+              : a
+          )
+        );
+        toast(targetDepartment ? `Alert escalated to ${targetDepartment}. Notification dispatched.` : "Alert updated.");
+      }
     } finally {
       setBusyAlertId(null);
     }

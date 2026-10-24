@@ -176,3 +176,18 @@ def list_page(
         params,
     ).mappings().all()
     return [dict(row) for row in rows], int(total)
+
+
+def list_all(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
+    rows = db.execute(
+        text(
+            f"""
+            SELECT {_SELECT_COLUMNS}
+            {_JOINS}
+            WHERE s.volunteer_id = :volunteer_id
+            ORDER BY s.story_date DESC, s.story_id DESC
+            """
+        ),
+        {"volunteer_id": volunteer_id},
+    ).mappings().all()
+    return [dict(row) for row in rows]

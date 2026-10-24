@@ -2,6 +2,7 @@ import logging
 from math import ceil
 
 from fastapi import HTTPException, status
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -85,12 +86,43 @@ def list_stories(db: Session, volunteer_id: int, query) -> dict:
     }
 
 
-def get_story(db: Session, volunteer_id: int, story_id: int) -> dict:
-    record = repository.get_one(db, volunteer_id, story_id)
-    if record is None:
-        raise HTTPException(404, "Success story not found.")
-    return {
-        "success": True,
-        "message": "Record fetched successfully",
-        "data": record,
-    }
+def list_all_stories(db: Session, volunteer_id: int) -> list[dict]:
+    return repository.list_all(db, volunteer_id)
+
+
+def get_story(
+    db: Session,
+    story_id: int,
+    volunteer_id: int | None = None,
+    supervisor_id: int | None = None,
+) -> dict:
+    if story_id <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="story_id must be a positive integer greater than zero.",
+        )
+
+    raw = db.execute(
+        text("SELECT volunteer_id FROM public.success_story WHERE story_id = :id"),
+        {"id": story_id},
+    ).mappings().one_or_none()
+    if not raw:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "STORY_NOT_FOUND",
+                "message": f"Success story with ID {story_id} was not found.",
+            },
+        )
+
+    if volunteer_id is not None and raw["volunteer_id"] != volunteer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "FORBIDDEN",
+                "message": "You are not authorized to view this success story.",
+            },
+        )
+
+    record = repository.get_one(db, raw["volunteer_id"], story_id)
+    return record

@@ -1,14 +1,14 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
-from app.modules.auth.dependencies import get_current_volunteer_id
+from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor
 from app.modules.sample_support import repository, service
 from app.modules.sample_support.schemas import (
     SampleSupportCreate,
-    SampleSupportListQuery,
-    SampleSupportListResponse,
     SampleSupportResponse,
+    SampleSupportAllResponse,
+    SampleSupportSingleResponse,
     SampleTypeResponse,
 )
 
@@ -20,6 +20,48 @@ def sample_types(db: Session = Depends(get_db)):
     return repository.list_types(db)
 
 
+@router.get("/all", response_model=SampleSupportAllResponse, status_code=status.HTTP_200_OK)
+def list_all_sample_support(
+    volunteer_id: int = Depends(get_current_volunteer_id),
+    db: Session = Depends(get_db),
+):
+    """Retrieve all sample support records belonging to the signed-in volunteer."""
+    return {
+        "success": True,
+        "message": "All records fetched successfully",
+        "data": service.list_all_samples(db, volunteer_id),
+    }
+
+
+@router.get(
+    "/{sample_id}",
+    response_model=SampleSupportSingleResponse,
+    status_code=status.HTTP_200_OK,
+)
+def sample_support_details(
+    sample_id: int = Path(
+        ...,
+        gt=0,
+        le=2147483647,
+        description="The sample support ID to retrieve. Must be a positive integer greater than zero.",
+    ),
+    actor: dict = Depends(get_current_actor),
+    db: Session = Depends(get_db),
+):
+    """Retrieve a single sample support record by ID with server-side validation and authorization."""
+    record = service.get_sample(
+        db=db,
+        sample_id=sample_id,
+        volunteer_id=actor.get("volunteer_id"),
+        supervisor_id=actor.get("supervisor_id"),
+    )
+    return {
+        "success": True,
+        "message": "Sample support record fetched successfully",
+        "data": record,
+    }
+
+
 @router.post("", response_model=SampleSupportResponse, status_code=status.HTTP_201_CREATED)
 def create_sample_support(
     data: SampleSupportCreate,
@@ -27,25 +69,4 @@ def create_sample_support(
     db: Session = Depends(get_db),
 ):
     return service.create_sample(db, volunteer_id, data)
-
-
-@router.get("", response_model=SampleSupportListResponse)
-def list_sample_support(
-    query: SampleSupportListQuery = Depends(),
-    volunteer_id: int = Depends(get_current_volunteer_id),
-    db: Session = Depends(get_db),
-):
-    return service.list_samples(db, volunteer_id, query)
-
-
-@router.get("/{sample_id}", response_model=SampleSupportResponse)
-def sample_support_details(
-    sample_id: int,
-    volunteer_id: int = Depends(get_current_volunteer_id),
-    db: Session = Depends(get_db),
-):
-    if sample_id <= 0:
-        from fastapi import HTTPException
-        raise HTTPException(422, "sample_id must be positive.")
-    return service.get_sample(db, volunteer_id, sample_id)
 

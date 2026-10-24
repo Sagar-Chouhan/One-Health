@@ -1,7 +1,9 @@
 import logging
 from math import ceil
+from typing import Any
 
 from fastapi import HTTPException, status
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -274,3 +276,60 @@ def create_event_report(db: Session, volunteer_id: int, data: EventReportForm) -
         "attachments": len(ready_files),
         "duplicate": False,
     }
+
+
+def list_all_event_reports(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
+    return repository.list_all(db, volunteer_id)
+
+
+def get_event_report_by_id(
+    db: Session,
+    event_report_id: int,
+    volunteer_id: int | None = None,
+    supervisor_id: int | None = None,
+) -> dict[str, Any]:
+    if event_report_id <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="event_report_id must be a positive integer greater than zero.",
+        )
+
+    record = repository.get_by_id(db, event_report_id)
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "EVENT_REPORT_NOT_FOUND",
+                "message": f"Event report record with ID {event_report_id} was not found.",
+            },
+        )
+
+    if volunteer_id is not None and record["volunteer_id"] != volunteer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "FORBIDDEN",
+                "message": "You are not authorized to view this event report.",
+            },
+        )
+
+    if supervisor_id is not None:
+        sup = db.execute(
+            text("SELECT supervisor_id, block_lgd_code FROM public.cohv_supervisor WHERE supervisor_id = :s_id"),
+            {"s_id": supervisor_id},
+        ).mappings().one_or_none()
+        if sup:
+            in_scope = (
+                record.get("supervisor_id") == supervisor_id
+                or (sup["block_lgd_code"] is not None and record.get("block_lgd_code") == sup["block_lgd_code"])
+            )
+            if not in_scope:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail={
+                        "code": "FORBIDDEN",
+                        "message": "This event report is outside your supervisor block.",
+                    },
+                )
+
+    return record

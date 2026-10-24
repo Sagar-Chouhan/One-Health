@@ -97,3 +97,37 @@ def list_activities(db: Session, volunteer_id: int, query) -> dict:
 
 def list_all_activities(db: Session, volunteer_id: int) -> list[dict]:
     return repository.list_all(db, volunteer_id)
+
+
+def get_activity_by_id(
+    db: Session,
+    awareness_id: int,
+    volunteer_id: int | None = None,
+    supervisor_id: int | None = None,
+) -> dict:
+    if awareness_id <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="awareness_id must be a positive integer greater than zero.",
+        )
+
+    record = repository.get_by_id(db, awareness_id)
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "AWARENESS_NOT_FOUND",
+                "message": f"Awareness activity with ID {awareness_id} was not found.",
+            },
+        )
+
+    if volunteer_id is not None and record["volunteer_id"] != volunteer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "FORBIDDEN",
+                "message": "You are not authorized to view this awareness activity.",
+            },
+        )
+
+    return record

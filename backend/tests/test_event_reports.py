@@ -1,37 +1,42 @@
 from fastapi.testclient import TestClient
-
-from app.database.session import get_db
 from app.main import app
 from app.modules.auth.dependencies import get_current_volunteer_id
-from app.modules.events import service
 
 
-def test_get_event_reports_is_scoped_to_current_volunteer(monkeypatch):
-    calls = []
-
-    def fake_list(db, volunteer_id, *, limit, offset):
-        calls.append((volunteer_id, limit, offset))
-        return []
-
-    monkeypatch.setattr(service, "list_event_reports", fake_list)
-    app.dependency_overrides[get_db] = lambda: object()
-    app.dependency_overrides[get_current_volunteer_id] = lambda: 45
+def test_get_event_reports_all():
+    app.dependency_overrides[get_current_volunteer_id] = lambda: 23
     try:
-        response = TestClient(app).get("/api/events?limit=10&offset=20")
+        client = TestClient(app)
+        response = client.get("/api/events/all")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert isinstance(data["data"], list)
     finally:
         app.dependency_overrides.clear()
 
-    assert response.status_code == 200
-    assert response.json() == []
-    assert calls == [(45, 10, 20)]
 
-
-def test_get_event_reports_rejects_invalid_pagination():
-    app.dependency_overrides[get_db] = lambda: object()
-    app.dependency_overrides[get_current_volunteer_id] = lambda: 45
+def test_get_event_report_by_id_invalid_id():
+    app.dependency_overrides[get_current_volunteer_id] = lambda: 23
     try:
-        response = TestClient(app).get("/api/events?limit=101")
+        client = TestClient(app)
+        # ID <= 0 returns 422
+        response = client.get("/api/events/0")
+        assert response.status_code == 422
+
+        # Non-integer returns 422
+        response = client.get("/api/events/abc")
+        assert response.status_code == 422
     finally:
         app.dependency_overrides.clear()
 
-    assert response.status_code == 422
+
+def test_get_event_report_by_id_not_found():
+    app.dependency_overrides[get_current_volunteer_id] = lambda: 23
+    try:
+        client = TestClient(app)
+        response = client.get("/api/events/9999999")
+        assert response.status_code == 404
+        assert response.json()["detail"]["code"] == "EVENT_REPORT_NOT_FOUND"
+    finally:
+        app.dependency_overrides.clear()

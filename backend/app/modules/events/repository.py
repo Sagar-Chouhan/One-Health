@@ -358,3 +358,114 @@ def notify(db: Session, volunteer_id: int, title: str, detail: str) -> None:
         ),
         {"volunteer_id": volunteer_id, "title": title, "detail": detail},
     )
+
+
+def list_all(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
+    rows = db.execute(
+        text(
+            """
+            SELECT
+                e.event_report_id, e.event_report_code, e.volunteer_id,
+                vr.volunteer_name, e.village_lgd_code, vh.village_name,
+                vh.state_lgd_code, vh.district_lgd_code, vh.block_lgd_code,
+                e.event_type_id, etm.event_type_name,
+                e.population_type_id, ptm.population_type_name,
+                e.sector_code, e.event_date, e.event_time,
+                e.is_out_of_area, e.purpose_of_visit, e.location_type, e.total_visits,
+                e.description, e.observations, e.action_taken,
+                e.referral_generated, e.alert_generated, e.follow_up_required,
+                e.latitude, e.longitude, e.gps_accuracy_m, e.gps_unavailable_reason,
+                e.captured_at, e.verification_status, e.created_at
+            FROM public.event_report e
+            JOIN public.volunteer_registration vr ON vr.volunteer_id = e.volunteer_id
+            JOIN public.v_village_hierarchy vh ON vh.village_lgd_code = e.village_lgd_code
+            JOIN public.event_type_master etm ON etm.event_type_id = e.event_type_id
+            LEFT JOIN public.population_type_master ptm ON ptm.population_type_id = e.population_type_id
+            WHERE e.volunteer_id = :volunteer_id
+            ORDER BY e.event_date DESC, e.event_time DESC, e.event_report_id DESC
+            """
+        ),
+        {"volunteer_id": volunteer_id},
+    ).mappings().all()
+    reports = [dict(row) for row in rows]
+    if not reports:
+        return reports
+
+    attachment_rows = db.execute(
+        text(
+            """
+            SELECT attachment_id, entity_id, file_kind, file_name,
+                   storage_path, mime_type, size_bytes, caption
+            FROM public.attachment
+            WHERE volunteer_id = :volunteer_id
+              AND entity_type = 'EVENT_REPORT'
+              AND entity_id = ANY(:event_ids)
+            ORDER BY attachment_id
+            """
+        ),
+        {
+            "volunteer_id": volunteer_id,
+            "event_ids": [row["event_report_id"] for row in reports],
+        },
+    ).mappings().all()
+
+    attachments_by_report: dict[int, list[dict[str, Any]]] = {}
+    for row in attachment_rows:
+        attachment = dict(row)
+        report_id = attachment.pop("entity_id")
+        attachments_by_report.setdefault(report_id, []).append(attachment)
+
+    for report in reports:
+        report["attachments"] = attachments_by_report.get(
+            report["event_report_id"], []
+        )
+    return reports
+
+
+def get_by_id(db: Session, event_report_id: int) -> dict[str, Any] | None:
+    row = db.execute(
+        text(
+            """
+            SELECT
+                e.event_report_id, e.event_report_code, e.volunteer_id,
+                vr.volunteer_name, vr.supervisor_id,
+                e.village_lgd_code, vh.village_name,
+                vh.gram_panchayat_name, vh.block_name, vh.district_name, vh.state_name,
+                vh.state_lgd_code, vh.district_lgd_code, vh.block_lgd_code,
+                e.client_ref, e.device_id,
+                e.event_type_id, etm.event_type_name, e.event_type_other,
+                e.population_type_id, ptm.population_type_name, e.population_other,
+                e.sector_code, e.event_date, e.event_time,
+                e.is_out_of_area, e.purpose_of_visit, e.location_type, e.total_visits,
+                e.description, e.observations, e.action_taken,
+                e.referral_generated, e.alert_generated, e.follow_up_required,
+                e.latitude, e.longitude, e.gps_accuracy_m, e.gps_unavailable_reason,
+                e.captured_at, e.verification_status, e.created_at, e.updated_at
+            FROM public.event_report e
+            JOIN public.volunteer_registration vr ON vr.volunteer_id = e.volunteer_id
+            JOIN public.v_village_hierarchy vh ON vh.village_lgd_code = e.village_lgd_code
+            JOIN public.event_type_master etm ON etm.event_type_id = e.event_type_id
+            LEFT JOIN public.population_type_master ptm ON ptm.population_type_id = e.population_type_id
+            WHERE e.event_report_id = :event_report_id
+            """
+        ),
+        {"event_report_id": event_report_id},
+    ).mappings().one_or_none()
+    if not row:
+        return None
+    data = dict(row)
+    attachment_rows = db.execute(
+        text(
+            """
+            SELECT attachment_id, file_kind, file_name,
+                   storage_path, mime_type, size_bytes, caption
+            FROM public.attachment
+            WHERE entity_type = 'EVENT_REPORT'
+              AND entity_id = :event_id
+            ORDER BY attachment_id
+            """
+        ),
+        {"event_id": event_report_id},
+    ).mappings().all()
+    data["attachments"] = [dict(a) for a in attachment_rows]
+    return data

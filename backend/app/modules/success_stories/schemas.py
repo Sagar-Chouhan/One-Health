@@ -126,3 +126,15 @@ class SuccessStoryListResponse(BaseModel):
     success: bool = True
     message: str = "Records fetched successfully"
     data: SuccessStoryListData
+
+
+class SuccessStoryAllResponse(BaseModel):
+    success: bool = True
+    message: str = "All records fetched successfully"
+    data: list[SuccessStoryItem]
+
+
+class SuccessStorySingleResponse(BaseModel):
+    success: bool = True
+    message: str = "Success story record fetched successfully"
+    data: SuccessStoryItem
