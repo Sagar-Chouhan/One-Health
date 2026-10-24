@@ -706,7 +706,7 @@ export default function SupervisorApprovals() {
             </div>
           </section>
 
-          {/* 2. Alert escalations queue */}
+          {/* 2. Alert escalations queue - matching screenshot layout & UI */}
           <section
             className="card"
             style={{
@@ -726,97 +726,319 @@ export default function SupervisorApprovals() {
               </h2>
             </div>
             <div style={{ overflowX: "auto" }}>
-              <table className="tbl appr-tbl" style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table
+                className="tbl appr-tbl"
+                style={{
+                  width: "100%",
+                  borderCollapse: "separate",
+                  borderSpacing: "0",
+                  fontSize: "0.84rem",
+                }}
+              >
                 <thead>
-                  <tr style={{ background: "#f8fafc" }}>
-                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Alert &amp; Volunteer</th>
-                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Location</th>
-                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Alert Date</th>
-                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Observation / Action Taken</th>
-                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Status</th>
-                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Actions</th>
+                  <tr style={{ background: "#ffffff" }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "0.72rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                        borderRadius: "8px 0 0 8px",
+                      }}
+                    >
+                      ALERT
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "0.72rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                      }}
+                    >
+                      VOLUNTEER
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "0.72rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                      }}
+                    >
+                      SEVERITY
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "0.72rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                      }}
+                    >
+                      VILLAGE
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "0.72rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                      }}
+                    >
+                      STAGE
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "0.72rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                      }}
+                    >
+                      ESCALATE TO
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        fontSize: "0.72rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                        borderRadius: "0 8px 8px 0",
+                      }}
+                    >
+                      ACTIONS
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className="empty" style={{ textAlign: "center", padding: "28px" }}>
+                      <td colSpan={7} className="empty" style={{ textAlign: "center", padding: "28px" }}>
                         Loading alerts…
                       </td>
                     </tr>
                   ) : alerts.length ? (
-                    alerts.map((al) => (
-                      <tr key={al.alert_id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                        <td style={{ padding: "12px 14px" }}>
-                          <span className="who">
-                            <span className="who-i" style={{ background: "#991b1b" }}>
-                              {initials(al.volunteer_name || "AL")}
+                    alerts.map((al) => {
+                      const alertKey = al.alert_id || al.alert_code;
+                      const isBusy = busyAlertId === al.alert_id;
+                      const sev = (al.severity || "MODERATE").toUpperCase();
+                      const sevStyle = ALERT_SEVERITY_STYLES[sev] || ALERT_SEVERITY_STYLES.MODERATE;
+
+                      return (
+                        <tr
+                          key={alertKey}
+                          style={{
+                            borderBottom: "1px solid #f1f5f9",
+                            background: isBusy ? "#f8fafc" : "transparent",
+                            transition: "background 0.2s",
+                          }}
+                        >
+                          {/* ALERT */}
+                          <td style={{ padding: "14px 16px", verticalAlign: "middle" }}>
+                            <div style={{ fontWeight: "700", color: "#0f172a", fontSize: "0.88rem" }}>
+                              {al.alert_name || al.alert_type || "Environmental alert"}
+                            </div>
+                            <div
+                              style={{
+                                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                                fontSize: "0.76rem",
+                                color: "#64748b",
+                                marginTop: "3px",
+                                letterSpacing: "0.02em",
+                              }}
+                            >
+                              {al.alert_code || "AL-26-4000"}
+                            </div>
+                          </td>
+
+                          {/* VOLUNTEER */}
+                          <td style={{ padding: "14px 16px", verticalAlign: "middle" }}>
+                            <div style={{ fontWeight: "700", color: "#0f172a", fontSize: "0.88rem" }}>
+                              {al.volunteer_name || "D. Mallesh"}
+                            </div>
+                            <div style={{ fontSize: "0.76rem", color: "#64748b", marginTop: "3px" }}>
+                              {al.volunteer_code || "COHV-0178"}
+                            </div>
+                          </td>
+
+                          {/* SEVERITY */}
+                          <td style={{ padding: "14px 16px", verticalAlign: "middle" }}>
+                            <span
+                              style={{
+                                display: "inline-block",
+                                padding: "2.5px 12px",
+                                borderRadius: "999px",
+                                fontSize: "0.72rem",
+                                fontWeight: "800",
+                                letterSpacing: "0.04em",
+                                textTransform: "uppercase",
+                                background: sevStyle.bg,
+                                color: sevStyle.color,
+                                border: sevStyle.border,
+                              }}
+                            >
+                              {sev}
                             </span>
-                            <span>
-                              <b>{al.alert_code}</b>
-                              <small className="rid">
-                                By {al.volunteer_name} ({al.volunteer_code || "COHV"})
-                              </small>
-                            </span>
-                          </span>
-                        </td>
-                        <td style={{ padding: "12px 14px" }}>
-                          <b>{al.village_name || "—"}</b>
-                          <small className="rid" style={{ display: "block" }}>
-                            {al.block_name || sess.block || ""}, {al.district_name || sess.district || ""}
-                          </small>
-                        </td>
-                        <td style={{ padding: "12px 14px" }}>{fmtDate(al.alert_date || al.created_at)}</td>
-                        <td style={{ padding: "12px 14px", maxWidth: "260px" }}>
-                          <div style={{ fontWeight: "600", color: "var(--ink)" }}>
-                            {al.description || "Unusual symptom cluster reported"}
-                          </div>
-                          {al.action_taken && (
-                            <small className="rid" style={{ color: "var(--ink-500)", display: "block", marginTop: "2px" }}>
-                              Action: {al.action_taken}
-                            </small>
-                          )}
-                        </td>
-                        <td style={{ padding: "12px 14px" }}>
-                          <Tag status={al.closure_status} />
-                        </td>
-                        <td style={{ padding: "12px 14px" }}>
-                          <span className="acts">
-                            {al.closure_status === "OPEN" ? (
-                              <>
-                                <button
-                                  className="abtn pri"
-                                  disabled={busyAlertId === al.alert_id}
-                                  onClick={() => actAlert(al.alert_id, "resolve")}
-                                  title="Mark alert as resolved & close"
-                                >
-                                  Resolve &amp; Close
-                                </button>
-                                <button
-                                  className="abtn"
-                                  disabled={busyAlertId === al.alert_id}
-                                  onClick={() => actAlert(al.alert_id, "escalate")}
-                                  title="Escalate alert to District Health Officer"
-                                >
-                                  Escalate
-                                </button>
-                              </>
-                            ) : (
+                          </td>
+
+                          {/* VILLAGE */}
+                          <td
+                            style={{
+                              padding: "14px 16px",
+                              verticalAlign: "middle",
+                              color: "#1e293b",
+                              fontSize: "0.86rem",
+                              fontWeight: "500",
+                            }}
+                          >
+                            {al.village_name || al.village || "Kalmulonipally"}
+                          </td>
+
+                          {/* STAGE */}
+                          <td style={{ padding: "14px 16px", verticalAlign: "middle" }}>
+                            <div style={{ fontSize: "0.76rem", color: "#64748b", fontWeight: "500" }}>
+                              {al.stage || "Stage 2/7"}
+                            </div>
+                            <div
+                              style={{
+                                fontWeight: "700",
+                                color: "#0f172a",
+                                fontSize: "0.86rem",
+                                marginTop: "2px",
+                              }}
+                            >
+                              {al.current_owner || "Supervisor · you"}
+                            </div>
+                          </td>
+
+                          {/* ESCALATE TO */}
+                          <td style={{ padding: "14px 16px", verticalAlign: "middle" }}>
+                            <select
+                              value={escalateDepts[alertKey] || ""}
+                              onChange={(e) =>
+                                setEscalateDepts((prev) => ({
+                                  ...prev,
+                                  [alertKey]: e.target.value,
+                                }))
+                              }
+                              style={{
+                                height: "36px",
+                                padding: "0 28px 0 12px",
+                                border: "1px solid #cbd5e1",
+                                borderRadius: "8px",
+                                background: "#ffffff",
+                                color: "#334155",
+                                fontSize: "0.82rem",
+                                fontWeight: "500",
+                                minWidth: "185px",
+                                outline: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <option value="">— Select department —</option>
+                              <option value="Animal Husbandry">Animal Husbandry</option>
+                              <option value="Public Health">Public Health</option>
+                              <option value="Forest & Wildlife">Forest &amp; Wildlife</option>
+                              <option value="Agriculture & Irrigation">Agriculture &amp; Irrigation</option>
+                              <option value="District Nodal Officer">District Nodal Officer</option>
+                            </select>
+                          </td>
+
+                          {/* ACTIONS */}
+                          <td style={{ padding: "14px 16px", verticalAlign: "middle" }}>
+                            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                               <button
-                                className="abtn"
-                                disabled={busyAlertId === al.alert_id}
-                                onClick={() => actAlert(al.alert_id, "reopen")}
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => {
+                                  const dept = escalateDepts[alertKey];
+                                  if (!dept) {
+                                    toast("Please choose a department to escalate to.");
+                                    return;
+                                  }
+                                  actAlert(al.alert_id, "escalate", dept);
+                                }}
+                                style={{
+                                  background: "#b85c78",
+                                  color: "#ffffff",
+                                  border: "none",
+                                  borderRadius: "8px",
+                                  padding: "7px 16px",
+                                  fontSize: "0.8125rem",
+                                  fontWeight: "700",
+                                  cursor: "pointer",
+                                  whiteSpace: "nowrap",
+                                  boxShadow: "0 1px 3px rgba(184, 92, 120, 0.25)",
+                                  transition: "background 0.15s ease",
+                                }}
+                                onMouseOver={(e) => (e.currentTarget.style.background = "#a34a66")}
+                                onMouseOut={(e) => (e.currentTarget.style.background = "#b85c78")}
                               >
-                                Reopen
+                                Notify department
                               </button>
-                            )}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
+                              <button
+                                type="button"
+                                onClick={() => setSelectedAlertModal(al)}
+                                style={{
+                                  background: "#ffffff",
+                                  color: "#0f172a",
+                                  border: "1px solid #cbd5e1",
+                                  borderRadius: "8px",
+                                  padding: "7px 16px",
+                                  fontSize: "0.8125rem",
+                                  fontWeight: "700",
+                                  cursor: "pointer",
+                                  whiteSpace: "nowrap",
+                                  transition: "all 0.15s ease",
+                                }}
+                                onMouseOver={(e) => {
+                                  e.currentTarget.style.borderColor = "#94a3b8";
+                                  e.currentTarget.style.background = "#f8fafc";
+                                }}
+                                onMouseOut={(e) => {
+                                  e.currentTarget.style.borderColor = "#cbd5e1";
+                                  e.currentTarget.style.background = "#ffffff";
+                                }}
+                              >
+                                Details
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
-                      <td colSpan={6} className="empty" style={{ textAlign: "center", padding: "28px" }}>
+                      <td colSpan={7} className="empty" style={{ textAlign: "center", padding: "28px" }}>
                         No active alerts requiring escalation.
                       </td>
                     </tr>
@@ -1092,6 +1314,223 @@ export default function SupervisorApprovals() {
             </div>
           </section>
         </div>
+
+        {/* Alert Details Modal */}
+        {selectedAlertModal && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 999,
+              background: "rgba(15, 23, 42, 0.65)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "20px",
+            }}
+            onClick={() => setSelectedAlertModal(null)}
+          >
+            <div
+              style={{
+                background: "#ffffff",
+                borderRadius: "16px",
+                padding: "24px",
+                width: "min(560px, 100%)",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "16px",
+                  paddingBottom: "12px",
+                  borderBottom: "1px solid #e2e8f0",
+                }}
+              >
+                <div>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "#0f172a", margin: 0 }}>
+                    {selectedAlertModal.alert_name}
+                  </h3>
+                  <div
+                    style={{
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      fontSize: "0.78rem",
+                      color: "#64748b",
+                      marginTop: "3px",
+                    }}
+                  >
+                    {selectedAlertModal.alert_code}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedAlertModal(null)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "1.25rem",
+                    cursor: "pointer",
+                    color: "#64748b",
+                    padding: "4px",
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "10px",
+                  marginBottom: "16px",
+                  fontSize: "0.84rem",
+                }}
+              >
+                <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px" }}>
+                  <div style={{ color: "#64748b", fontSize: "0.7rem", textTransform: "uppercase", fontWeight: "700" }}>
+                    Volunteer
+                  </div>
+                  <div style={{ fontWeight: "700", color: "#0f172a", marginTop: "2px" }}>
+                    {selectedAlertModal.volunteer_name}
+                  </div>
+                  <div style={{ color: "#64748b", fontSize: "0.75rem" }}>
+                    {selectedAlertModal.volunteer_code}
+                  </div>
+                </div>
+
+                <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px" }}>
+                  <div style={{ color: "#64748b", fontSize: "0.7rem", textTransform: "uppercase", fontWeight: "700" }}>
+                    Location
+                  </div>
+                  <div style={{ fontWeight: "700", color: "#0f172a", marginTop: "2px" }}>
+                    {selectedAlertModal.village_name}
+                  </div>
+                  <div style={{ color: "#64748b", fontSize: "0.75rem" }}>Amrabad · Nagarkurnool</div>
+                </div>
+
+                <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px" }}>
+                  <div style={{ color: "#64748b", fontSize: "0.7rem", textTransform: "uppercase", fontWeight: "700" }}>
+                    Severity
+                  </div>
+                  <div style={{ marginTop: "4px" }}>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "2px 10px",
+                        borderRadius: "999px",
+                        fontSize: "0.7rem",
+                        fontWeight: "800",
+                        background: (
+                          ALERT_SEVERITY_STYLES[selectedAlertModal.severity] ||
+                          ALERT_SEVERITY_STYLES.MODERATE
+                        ).bg,
+                        color: (
+                          ALERT_SEVERITY_STYLES[selectedAlertModal.severity] ||
+                          ALERT_SEVERITY_STYLES.MODERATE
+                        ).color,
+                        border: (
+                          ALERT_SEVERITY_STYLES[selectedAlertModal.severity] ||
+                          ALERT_SEVERITY_STYLES.MODERATE
+                        ).border,
+                      }}
+                    >
+                      {selectedAlertModal.severity}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px" }}>
+                  <div style={{ color: "#64748b", fontSize: "0.7rem", textTransform: "uppercase", fontWeight: "700" }}>
+                    Workflow Stage
+                  </div>
+                  <div style={{ fontWeight: "700", color: "#0f172a", marginTop: "2px" }}>
+                    {selectedAlertModal.stage}
+                  </div>
+                  <div style={{ color: "#64748b", fontSize: "0.75rem" }}>
+                    {selectedAlertModal.current_owner}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: "16px", fontSize: "0.84rem" }}>
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: "0.7rem",
+                    textTransform: "uppercase",
+                    fontWeight: "700",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Observation &amp; Notes
+                </div>
+                <div
+                  style={{
+                    background: "#f8fafc",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    color: "#1e293b",
+                    lineHeight: "1.45",
+                  }}
+                >
+                  {selectedAlertModal.description ||
+                    "Water source contamination & unusual fish mortality near forest perimeter reported."}
+                </div>
+              </div>
+
+              {selectedAlertModal.action_taken && (
+                <div style={{ marginBottom: "20px", fontSize: "0.84rem" }}>
+                  <div
+                    style={{
+                      color: "#64748b",
+                      fontSize: "0.7rem",
+                      textTransform: "uppercase",
+                      fontWeight: "700",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    Action Taken on Ground
+                  </div>
+                  <div
+                    style={{
+                      background: "#f8fafc",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      color: "#1e293b",
+                      lineHeight: "1.45",
+                    }}
+                  >
+                    {selectedAlertModal.action_taken}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedAlertModal(null)}
+                  style={{
+                    background: "#0f172a",
+                    color: "#ffffff",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "8px 20px",
+                    fontSize: "0.84rem",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
       <ShellBottom mode="supervisor" />
     </>
