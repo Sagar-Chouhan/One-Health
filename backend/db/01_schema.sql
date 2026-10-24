@@ -388,7 +388,8 @@ CREATE TABLE volunteer_registration (
     date_of_birth            DATE         NOT NULL,          -- 18+ is checked in the API
     mobile_no                VARCHAR(10)  NOT NULL UNIQUE CHECK (mobile_no ~ '^[6-9][0-9]{9}$'),
     email                    VARCHAR(150) NOT NULL UNIQUE,   -- reports are delivered by e-mail
-    cohv_type                cohv_type_label NOT NULL,       -- 'Public Health' | 'Animal' | 'Wildlife' | 'Environment'
+    cohv_type                cohv_type_label,                -- 'Public Health' | 'Animal' | 'Wildlife' | 'Environment'
+    department_name          VARCHAR(150),
     department_id            SMALLINT REFERENCES department_master (department_id),
     institution_type_id      SMALLINT REFERENCES cohv_institution_type_master (institution_type_id),
     institution_name         VARCHAR(200),

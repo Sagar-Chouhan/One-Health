@@ -23,10 +23,69 @@ from app.modules.sample_support.router import router as sample_support_router
 from app.modules.success_stories.router import router as success_stories_router
 from app.modules.volunteers.router import router as volunteers_router, singular_router as volunteer_singular_router
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Self-healing startup checks: ensures tables/views/columns expected by the API exist."""
+    from app.database.session import engine
+    try:
+        with engine.begin() as conn:
+            # 1. Ensure department_name exists in volunteer_registration
+            conn.execute(text("""
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'volunteer_registration'
+                    ) AND NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_schema = 'public' AND table_name = 'volunteer_registration' AND column_name = 'department_name'
+                    ) THEN
+                        ALTER TABLE public.volunteer_registration ADD COLUMN department_name VARCHAR(150);
+                        
+                        IF EXISTS (
+                            SELECT 1 FROM information_schema.columns 
+                            WHERE table_schema = 'public' AND table_name = 'volunteer_registration' AND column_name = 'cohv_type'
+                        ) THEN
+                            UPDATE public.volunteer_registration SET department_name = cohv_type::text WHERE department_name IS NULL;
+                        ELSIF EXISTS (
+                            SELECT 1 FROM information_schema.columns 
+                            WHERE table_schema = 'public' AND table_name = 'volunteer_registration' AND column_name = 'department_id'
+                        ) THEN
+                            UPDATE public.volunteer_registration v
+                            SET department_name = dm.department_name
+                            FROM public.department_master dm
+                            WHERE v.department_id = dm.department_id AND v.department_name IS NULL;
+                        END IF;
+                    END IF;
+                END $$;
+            """))
+
+            # 2. Ensure profession_master view exists if only Designation_master exists
+            conn.execute(text("""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'profession_master'
+                    ) AND NOT EXISTS (
+                        SELECT 1 FROM information_schema.views WHERE table_schema = 'public' AND table_name = 'profession_master'
+                    ) AND EXISTS (
+                        SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Designation_master'
+                    ) THEN
+                        CREATE OR REPLACE VIEW public.profession_master AS SELECT * FROM public."Designation_master";
+                    END IF;
+                END $$;
+            """))
+    except Exception as exc:
+        logger.warning("Could not execute db compatibility startup checks: %s", exc)
+    
+    yield
+
 app = FastAPI(
     title="OneHealth Volunteer API",
     description="Secure volunteer registration and authentication APIs",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 
@@ -76,7 +135,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
