@@ -76,6 +76,44 @@ async def lifespan(app: FastAPI):
                     END IF;
                 END $$;
             """))
+
+            # 3. Ensure sector_master has 'human' and migrate from legacy 'public' if needed
+            conn.execute(text("""
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'sector_master'
+                    ) THEN
+                        IF EXISTS (SELECT 1 FROM public.sector_master WHERE sector_code = 'public') 
+                           AND NOT EXISTS (SELECT 1 FROM public.sector_master WHERE sector_code = 'human') THEN
+                            INSERT INTO public.sector_master (
+                                sector_code, sector_name, section_code, population_label,
+                                accent_color, sort_order
+                            )
+                            SELECT
+                                'human', 'Public Health', section_code, population_label,
+                                accent_color, sort_order
+                            FROM public.sector_master
+                            WHERE sector_code = 'public';
+
+                            UPDATE public.population_type_master
+                               SET sector_code = 'human'
+                             WHERE sector_code = 'public';
+
+                            DELETE FROM public.sector_master
+                             WHERE sector_code = 'public';
+                        END IF;
+
+                        INSERT INTO public.sector_master (sector_code, sector_name, section_code, population_label, accent_color, sort_order)
+                        VALUES 
+                            ('human',       'Human Health',  'C1', 'Human Population',     '#5B8BB8', 1),
+                            ('animal',      'Animal Health', 'C2', 'Livestock Population', '#8B7EC4', 2),
+                            ('wildlife',    'Wildlife',      'C3', 'Wildlife Population',  '#7FA88C', 3),
+                            ('environment', 'Environmental', 'C4', 'Population Exposed',   '#D18F6F', 4)
+                        ON CONFLICT (sector_code) DO NOTHING;
+                    END IF;
+                END $$;
+            """))
     except Exception as exc:
         logger.warning("Could not execute db compatibility startup checks: %s", exc)
     

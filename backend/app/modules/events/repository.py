@@ -25,7 +25,11 @@ def sector(db: Session, sector_code: str) -> dict[str, Any] | None:
         text(
             """
             SELECT sector_code, sector_name, population_label
-            FROM public.sector_master WHERE sector_code = :code
+            FROM public.sector_master 
+            WHERE sector_code = :code 
+               OR (sector_code = 'public' AND :code = 'human')
+               OR (sector_code = 'human' AND :code = 'public')
+            LIMIT 1
             """
         ),
         {"code": sector_code},
@@ -39,7 +43,10 @@ def event_types_for(db: Session, sector_code: str) -> list[dict[str, Any]]:
             """
             SELECT event_type_id AS id, event_type_name AS name, is_other
             FROM public.event_type_master
-            WHERE :sector = ANY (applicable_sectors) AND is_active
+            WHERE (:sector = ANY (applicable_sectors) 
+               OR (:sector = 'human' AND 'public' = ANY (applicable_sectors))
+               OR (:sector = 'public' AND 'human' = ANY (applicable_sectors)))
+              AND is_active
             ORDER BY sort_order, event_type_name
             """
         ),
@@ -54,7 +61,10 @@ def population_types_for(db: Session, sector_code: str) -> list[dict[str, Any]]:
             """
             SELECT population_type_id AS id, population_type_name AS name, is_other
             FROM public.population_type_master
-            WHERE sector_code = :sector AND is_active
+            WHERE (sector_code = :sector 
+               OR (sector_code = 'public' AND :sector = 'human')
+               OR (sector_code = 'human' AND :sector = 'public'))
+              AND is_active
             ORDER BY sort_order, population_type_name
             """
         ),
@@ -83,7 +93,11 @@ def event_type_in_sector(db: Session, event_type_id: int, sector_code: str) -> d
         text(
             """
             SELECT is_other FROM public.event_type_master
-            WHERE event_type_id = :id AND :sector = ANY (applicable_sectors) AND is_active
+            WHERE event_type_id = :id 
+              AND (:sector = ANY (applicable_sectors) 
+               OR (:sector = 'human' AND 'public' = ANY (applicable_sectors))
+               OR (:sector = 'public' AND 'human' = ANY (applicable_sectors)))
+              AND is_active
             """
         ),
         {"id": event_type_id, "sector": sector_code},
@@ -96,7 +110,11 @@ def population_in_sector(db: Session, population_type_id: int, sector_code: str)
         text(
             """
             SELECT is_other FROM public.population_type_master
-            WHERE population_type_id = :id AND sector_code = :sector AND is_active
+            WHERE population_type_id = :id 
+              AND (sector_code = :sector 
+               OR (sector_code = 'public' AND :sector = 'human')
+               OR (sector_code = 'human' AND :sector = 'public'))
+              AND is_active
             """
         ),
         {"id": population_type_id, "sector": sector_code},

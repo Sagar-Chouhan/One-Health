@@ -48,15 +48,16 @@ def get_form_metadata(db: Session, volunteer_id: int) -> dict:
     scope, sector_code = sector_for_volunteer(db, volunteer_id)
     sec = repository.sector(db, sector_code)
     if sec is None:
-        logger.error(
-            "Reporting sector %r is missing from sector_master for volunteer %s",
+        logger.warning(
+            "Reporting sector %r is missing from sector_master for volunteer %s. Using default metadata.",
             sector_code,
             volunteer_id,
         )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Reporting sector configuration is unavailable.",
-        )
+        sec = {
+            "sector_code": sector_code,
+            "sector_name": "Public Health" if sector_code in ("human", "public") else sector_code.capitalize(),
+            "population_label": "Human Population" if sector_code in ("human", "public") else "Population Exposed",
+        }
     today = date.today()
 
     return {
