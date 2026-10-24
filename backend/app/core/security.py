@@ -88,6 +88,9 @@ def create_access_token(subject_id: int, code: str, role: str = "COHV") -> tuple
 def decode_access_token(token: str) -> dict | None:
     """The token's claims, or None if it is forged, malformed or expired."""
     try:
-        return jwt.decode(token, get_signing_key(), algorithms=[JWT_ALGORITHM])
+        cleaned = str(token).strip()
+        if cleaned.lower().startswith("bearer "):
+            cleaned = cleaned[7:].strip()
+        return jwt.decode(cleaned, get_signing_key(), algorithms=[JWT_ALGORITHM])
     except jwt.PyJWTError:
         return None

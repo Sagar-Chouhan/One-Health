@@ -360,10 +360,15 @@ def notify(db: Session, volunteer_id: int, title: str, detail: str) -> None:
     )
 
 
-def list_all(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
+def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any]]:
+    where_sql = "WHERE e.volunteer_id = :volunteer_id" if volunteer_id is not None else "WHERE 1=1"
+    params: dict[str, Any] = {}
+    if volunteer_id is not None:
+        params["volunteer_id"] = volunteer_id
+
     rows = db.execute(
         text(
-            """
+            f"""
             SELECT
                 e.event_report_id, e.event_report_code, e.volunteer_id,
                 vr.volunteer_name, e.village_lgd_code, vh.village_name,
@@ -381,32 +386,33 @@ def list_all(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
             JOIN public.v_village_hierarchy vh ON vh.village_lgd_code = e.village_lgd_code
             JOIN public.event_type_master etm ON etm.event_type_id = e.event_type_id
             LEFT JOIN public.population_type_master ptm ON ptm.population_type_id = e.population_type_id
-            WHERE e.volunteer_id = :volunteer_id
+            {where_sql}
             ORDER BY e.event_date DESC, e.event_time DESC, e.event_report_id DESC
             """
         ),
-        {"volunteer_id": volunteer_id},
+        params,
     ).mappings().all()
     reports = [dict(row) for row in rows]
     if not reports:
         return reports
 
+    att_where = "WHERE entity_type = 'EVENT_REPORT' AND entity_id = ANY(:event_ids)"
+    att_params: dict[str, Any] = {"event_ids": [row["event_report_id"] for row in reports]}
+    if volunteer_id is not None:
+        att_where += " AND volunteer_id = :volunteer_id"
+        att_params["volunteer_id"] = volunteer_id
+
     attachment_rows = db.execute(
         text(
-            """
+            f"""
             SELECT attachment_id, entity_id, file_kind, file_name,
                    storage_path, mime_type, size_bytes, caption
             FROM public.attachment
-            WHERE volunteer_id = :volunteer_id
-              AND entity_type = 'EVENT_REPORT'
-              AND entity_id = ANY(:event_ids)
+            {att_where}
             ORDER BY attachment_id
             """
         ),
-        {
-            "volunteer_id": volunteer_id,
-            "event_ids": [row["event_report_id"] for row in reports],
-        },
+        att_params,
     ).mappings().all()
 
     attachments_by_report: dict[int, list[dict[str, Any]]] = {}

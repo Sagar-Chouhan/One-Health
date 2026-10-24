@@ -172,10 +172,15 @@ def list_page(db: Session, volunteer_id: int, filters: dict[str, Any]) -> tuple[
     return items, int(total)
 
 
-def list_all(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
+def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any]]:
+    where_sql = "WHERE a.volunteer_id = :volunteer_id" if volunteer_id is not None else "WHERE 1=1"
+    params: dict[str, Any] = {}
+    if volunteer_id is not None:
+        params["volunteer_id"] = volunteer_id
+
     rows = db.execute(
         text(
-            """
+            f"""
             SELECT a.awareness_id, a.awareness_code, a.volunteer_id,
                    vr.volunteer_name, a.awareness_activity_id,
                    aam.awareness_activity_name, a.activity_date,
@@ -194,36 +199,37 @@ def list_all(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
               ON atm.awareness_topic_id = a.awareness_topic_id
             LEFT JOIN public.department_master dm
               ON dm.department_id = a.department_id
-            WHERE a.volunteer_id = :volunteer_id
+            {where_sql}
             ORDER BY a.activity_date DESC, a.awareness_id DESC
             """
         ),
-        {"volunteer_id": volunteer_id},
+        params,
     ).mappings().all()
     items = [dict(row) for row in rows]
     add_attachments(db, volunteer_id, items)
     return items
 
 
-def add_attachments(db: Session, volunteer_id: int, items: list[dict]) -> None:
+def add_attachments(db: Session, volunteer_id: int | None, items: list[dict]) -> None:
     if not items:
         return
+    att_where = "WHERE entity_type = 'AWARENESS_ACTIVITY' AND entity_id = ANY(:entity_ids)"
+    params: dict[str, Any] = {"entity_ids": [item["awareness_id"] for item in items]}
+    if volunteer_id is not None:
+        att_where += " AND volunteer_id = :volunteer_id"
+        params["volunteer_id"] = volunteer_id
+
     rows = db.execute(
         text(
-            """
+            f"""
             SELECT attachment_id, entity_id, file_kind, file_name,
                    storage_path, mime_type, size_bytes, caption
             FROM public.attachment
-            WHERE volunteer_id = :volunteer_id
-              AND entity_type = 'AWARENESS_ACTIVITY'
-              AND entity_id = ANY(:entity_ids)
+            {att_where}
             ORDER BY attachment_id
             """
         ),
-        {
-            "volunteer_id": volunteer_id,
-            "entity_ids": [item["awareness_id"] for item in items],
-        },
+        params,
     ).mappings().all()
     grouped: dict[int, list[dict]] = {}
     for row in rows:

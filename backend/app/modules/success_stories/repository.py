@@ -178,16 +178,21 @@ def list_page(
     return [dict(row) for row in rows], int(total)
 
 
-def list_all(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
+def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any]]:
+    where_sql = "WHERE s.volunteer_id = :volunteer_id" if volunteer_id is not None else "WHERE 1=1"
+    params: dict[str, Any] = {}
+    if volunteer_id is not None:
+        params["volunteer_id"] = volunteer_id
+
     rows = db.execute(
         text(
             f"""
             SELECT {_SELECT_COLUMNS}
             {_JOINS}
-            WHERE s.volunteer_id = :volunteer_id
+            {where_sql}
             ORDER BY s.story_date DESC, s.story_id DESC
             """
         ),
-        {"volunteer_id": volunteer_id},
+        params,
     ).mappings().all()
     return [dict(row) for row in rows]

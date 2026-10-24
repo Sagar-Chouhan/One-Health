@@ -58,16 +58,16 @@ export async function getSupervisorProfile() {
 
   return {
     id: unit.id,
-    name: session.name || unit.name || "P. Narayana",
-    title: unit.title || "Assistant Program Manager (APM)",
-    designation: session.title || unit.title || "Assistant Program Manager (APM)",
-    pillar: unit.pillar || "environment",
-    pillarLabel: unit.pillarLabel || "Environment",
+    name: session.name || unit.name || "Dr. Ravi Kumar",
+    title: session.title || unit.title || "Medical Officer, PHC",
+    designation: session.title || unit.title || "Medical Officer, PHC",
+    pillar: unit.pillar || "public_health",
+    pillarLabel: session.department || unit.pillarLabel || "Public Health",
     district: session.district || unit.district || "Nagarkurnool",
     block: session.block || unit.block || "Amrabad",
     state: session.state || "Telangana",
-    cohvType: session.cohvType || unit.pillarLabel || "Environment",
-    email: session.user || "apm.amrabad@onehealth.in",
+    cohvType: session.cohvType || "Public Health",
+    email: session.user || "mo.amrabad@onehealth.in",
     teamIds: unit.team || []
   };
 }
@@ -87,23 +87,23 @@ export async function getSupervisorSummary(supervisorId) {
 
   await ensureGlobalData();
   const vols = await getSupervisorVolunteers(supervisorId);
-  const teamTotal = vols.length;
+  const teamTotal = vols.length > 0 ? vols.length : 9;
 
   return {
     team_total: teamTotal,
     supervised: teamTotal,
-    awaiting_verification: 4,
-    open_alerts: 2,
+    awaiting_verification: 0,
+    open_alerts: 0,
     pending_approvals: 1,
-    referrals_followup: 3,
-    total_visits: vols.reduce((sum, v) => sum + (v.activity?.events || 0), 0) + 24,
-    alerts_generated: 6,
-    referrals: vols.reduce((sum, v) => sum + (v.activity?.referrals || 0), 0),
-    awareness: vols.reduce((sum, v) => sum + (v.activity?.awareness || 0), 0),
-    trainings_imparted: vols.reduce((sum, v) => sum + (v.activity?.imparted || 0), 0),
-    trainings_attended: vols.reduce((sum, v) => sum + (v.activity?.attended || 0), 0),
-    meetings: 8,
-    samples_supported: vols.reduce((sum, v) => sum + (v.activity?.samples || 0), 0)
+    referrals_followup: 0,
+    total_visits: 0,
+    alerts_generated: 0,
+    referrals: 0,
+    awareness: 0,
+    trainings_imparted: 0,
+    trainings_attended: 0,
+    meetings: 0,
+    samples_supported: 0
   };
 }
 
@@ -163,15 +163,14 @@ export async function getSupervisorGeoData() {
 export function getPerformanceKPIs(summary) {
   const s = summary || {};
   return [
-    { label: "Total visits", value: s.total_visits ?? 0, sub: "Field inspections & surveys" },
-    { label: "Alerts generated", value: s.alerts_generated ?? 0, sub: "Syndromic & zoonotic notices" },
-    { label: "Referrals made", value: s.referrals ?? 0, sub: "To PHC / Vet dispensary" },
-    { label: "Pending follow-ups", value: s.referrals_followup ?? 0, sub: "Need verification" },
-    { label: "Awareness activities", value: s.awareness ?? 0, sub: "Community campaigns" },
-    { label: "Trainings imparted", value: s.trainings_imparted ?? 0, sub: "Sessions conducted" },
-    { label: "Trainings attended", value: s.trainings_attended ?? 0, sub: "Capacity building" },
-    { label: "Sample support", value: s.samples_supported ?? 0, sub: "Diagnostics facilitated" },
-    { label: "Village meetings", value: s.meetings ?? 0, sub: "Gram sabha & one-health" }
+    { label: "Total visits", value: s.total_visits ?? 0, icon: "pin" },
+    { label: "Alerts generated", value: s.alerts_generated ?? 0, icon: "alert" },
+    { label: "Referrals", value: s.referrals ?? 0, icon: "share" },
+    { label: "Pending follow-ups", value: s.referrals_followup ?? 0, icon: "clock" },
+    { label: "Awareness activities", value: s.awareness ?? 0, icon: "megaphone" },
+    { label: "Trainings imparted", value: s.trainings_imparted ?? 0, icon: "grad" },
+    { label: "Trainings attended", value: s.trainings_attended ?? 0, icon: "book" },
+    { label: "Meetings", value: s.meetings ?? 0, icon: "sync" }
   ];
 }
 

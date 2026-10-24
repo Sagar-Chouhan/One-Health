@@ -1,27 +1,21 @@
 import React from "react";
 import { getPerformanceKPIs } from "../service.js";
+import { Icon } from "../../../../lib/icons.jsx";
 
 export default function PerformanceKPIs({ summary }) {
   const kpis = getPerformanceKPIs(summary);
 
   return (
-    <section id="sec-performance" className="sup-view" aria-label="Performance indicators and KPIs">
-      <div className="sup-view-h">
-        <h2>Performance indicators &amp; KPIs</h2>
-        <span className="sub">Aggregated indicators for field teams in your block</span>
-      </div>
-
-      <div className="kgrid" id="activity-body">
-        {kpis.map((kpi, idx) => (
-          <div key={idx} className="kcell">
-            <div>
-              <div className="l">{kpi.label}</div>
-              <div className="v">{Number(kpi.value || 0).toLocaleString("en-IN")}</div>
-            </div>
-            {kpi.sub && <div className="delta">{kpi.sub}</div>}
+    <div className="sup-kpi-grid" role="region" aria-label="Performance indicators and KPIs">
+      {kpis.map((kpi, idx) => (
+        <div key={idx} className="sup-kpi-card">
+          <div className="kpi-hdr">
+            <Icon name={kpi.icon || "pin"} className="kpi-ico" />
+            <span className="kpi-lbl">{kpi.label}</span>
           </div>
-        ))}
-      </div>
-    </section>
+          <div className="kpi-val">{Number(kpi.value || 0).toLocaleString("en-IN")}</div>
+        </div>
+      ))}
+    </div>
   );
 }

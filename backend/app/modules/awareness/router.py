@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Form, Path, status
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
-from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor
+from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor, get_optional_actor
 from app.modules.awareness import repository, service
 from app.modules.awareness.schemas import (
     AwarenessActivityCreate,
@@ -18,13 +18,17 @@ router = APIRouter(prefix="/api/awareness-activities", tags=["Awareness Activiti
 
 @router.get("/all", response_model=AwarenessAllResponse, status_code=status.HTTP_200_OK)
 def list_all_awareness_activities(
-    volunteer_id: int = Depends(get_current_volunteer_id),
+    volunteer_id: int | None = None,
+    actor: dict | None = Depends(get_optional_actor),
     db: Session = Depends(get_db),
 ):
+    v_id = volunteer_id
+    if actor and actor.get("role") == "COHV":
+        v_id = actor.get("volunteer_id")
     return {
         "success": True,
         "message": "All records fetched successfully",
-        "data": service.list_all_activities(db, volunteer_id),
+        "data": service.list_all_activities(db, v_id),
     }
 
 

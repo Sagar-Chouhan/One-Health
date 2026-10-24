@@ -1,57 +1,39 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Icon } from "../../../../lib/icons.jsx";
 
 export default function ApprovalsReportsJump() {
   return (
-    <section id="sec-jump" className="sup-view" aria-label="Approvals and Reports Quick Jump">
-      <div className="sup-view-h">
-        <h2>Approvals &amp; Reports</h2>
-        <span className="sub">Direct access to verification queues and program reporting</span>
-      </div>
-
-      <div className="quick-jump">
-        <Link className="qj" to="/supervisor-approvals">
-          <span className="ico" aria-hidden="true">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 12l2 2 4-4" />
-              <rect x="3" y="3" width="18" height="18" rx="3" />
-            </svg>
-          </span>
-          <div className="txt">
-            <div className="h">Approvals</div>
-            <div className="p">COHV registrations · Alert escalations · Report verifications</div>
+    <div className="sup-jump-grid" role="region" aria-label="Approvals and Reports Quick Jump">
+      <Link className="sup-jump-card" to="/supervisor-approvals">
+        <div className="jump-l">
+          <div className="jump-ico-box">
+            <Icon name="clipboard" className="jump-ico" />
           </div>
-          <span className="chev" aria-hidden="true">›</span>
-        </Link>
-
-        <Link className="qj" to="/supervisor-reports">
-          <span className="ico" aria-hidden="true">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="4" y="3" width="16" height="18" rx="2" />
-              <path d="M8 7h8M8 11h8M8 15h5" />
-            </svg>
-          </span>
-          <div className="txt">
-            <div className="h">Reports</div>
-            <div className="p">Monthly / Quarterly / Annual · Referrals · Data quality · Export</div>
+          <div className="jump-txt">
+            <div className="jump-title">Approvals</div>
+            <div className="jump-sub">
+              COHV registrations · Alert escalations · Record verification
+            </div>
           </div>
-          <span className="chev" aria-hidden="true">›</span>
-        </Link>
-      </div>
-    </section>
+        </div>
+        <span className="jump-arrow" aria-hidden="true">→</span>
+      </Link>
+
+      <Link className="sup-jump-card" to="/supervisor-reports">
+        <div className="jump-l">
+          <div className="jump-ico-box">
+            <Icon name="file" className="jump-ico" />
+          </div>
+          <div className="jump-txt">
+            <div className="jump-title">Reports</div>
+            <div className="jump-sub">
+              Monthly / Quarterly / Annual · Referrals · Data quality · Export
+            </div>
+          </div>
+        </div>
+        <span className="jump-arrow" aria-hidden="true">→</span>
+      </Link>
+    </div>
   );
 }

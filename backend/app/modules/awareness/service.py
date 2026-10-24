@@ -95,7 +95,7 @@ def list_activities(db: Session, volunteer_id: int, query) -> dict:
     }
 
 
-def list_all_activities(db: Session, volunteer_id: int) -> list[dict]:
+def list_all_activities(db: Session, volunteer_id: int | None = None) -> list[dict]:
     return repository.list_all(db, volunteer_id)
 
 

@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Login from "../components/auth/Login.jsx";
-import SupervisorDashboard from "../pages/SupervisorDashboard.jsx";
+import SupervisorDashboard from "../features/Dashboard/Supervisor/pages/SupervisorDashboardPage.jsx";
 import SupervisorApprovals from "../pages/SupervisorApprovals.jsx";
 import ReportPage from "../features/report/pages/ReportPage.jsx";
 import NotFound from "../pages/NotFound.jsx";

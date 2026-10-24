@@ -5,7 +5,7 @@ import { Icon } from "../../lib/icons.jsx";
 import { clearSession, getSession, setSession } from "../../lib/session.js";
 import { ShellBottom, ShellTop } from "../../shell/Shell.jsx";
 import { useToast } from "../../shell/ToastContext.jsx";
-import "../../assests/login.css";
+import "./login.css";
 
 const ROLES = [
   { id: "super", icon: "shield", label: "NOHM / NCDC", name: "NOHM / NCDC" },

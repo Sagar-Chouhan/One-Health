@@ -191,13 +191,18 @@ def list_page(
     return [dict(row) for row in rows], int(total)
 
 
-def list_all(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
+def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any]]:
     joins = """
         FROM public.sample_support s
         JOIN public.volunteer_registration vr ON vr.volunteer_id = s.volunteer_id
         JOIN public.sample_type_master stm ON stm.sample_type_id = s.sample_type_id
         JOIN public.v_village_hierarchy vh ON vh.village_lgd_code = s.village_lgd_code
     """
+    where_sql = "WHERE s.volunteer_id = :volunteer_id" if volunteer_id is not None else "WHERE 1=1"
+    params: dict[str, Any] = {}
+    if volunteer_id is not None:
+        params["volunteer_id"] = volunteer_id
+
     rows = db.execute(
         text(
             f"""
@@ -207,11 +212,11 @@ def list_all(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
                    s.village_lgd_code, vh.village_name,
                    s.verification_status, s.captured_at, s.created_at
             {joins}
-            WHERE s.volunteer_id = :volunteer_id
+            {where_sql}
             ORDER BY s.sample_date DESC, s.sample_id DESC
             """
         ),
-        {"volunteer_id": volunteer_id},
+        params,
     ).mappings().all()
     return [dict(row) for row in rows]
 

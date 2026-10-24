@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Path, status
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
-from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor
+from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor, get_optional_actor
 from app.modules.sample_support import repository, service
 from app.modules.sample_support.schemas import (
     SampleSupportCreate,
@@ -22,14 +22,18 @@ def sample_types(db: Session = Depends(get_db)):
 
 @router.get("/all", response_model=SampleSupportAllResponse, status_code=status.HTTP_200_OK)
 def list_all_sample_support(
-    volunteer_id: int = Depends(get_current_volunteer_id),
+    volunteer_id: int | None = None,
+    actor: dict | None = Depends(get_optional_actor),
     db: Session = Depends(get_db),
 ):
-    """Retrieve all sample support records belonging to the signed-in volunteer."""
+    """Retrieve all sample support records."""
+    v_id = volunteer_id
+    if actor and actor.get("role") == "COHV":
+        v_id = actor.get("volunteer_id")
     return {
         "success": True,
         "message": "All records fetched successfully",
-        "data": service.list_all_samples(db, volunteer_id),
+        "data": service.list_all_samples(db, v_id),
     }
 
 

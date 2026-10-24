@@ -278,7 +278,7 @@ def create_event_report(db: Session, volunteer_id: int, data: EventReportForm) -
     }
 
 
-def list_all_event_reports(db: Session, volunteer_id: int) -> list[dict[str, Any]]:
+def list_all_event_reports(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any]]:
     return repository.list_all(db, volunteer_id)
 
 

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Form, Path, Query, status
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
-from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor
+from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor, get_optional_actor
 from app.modules.events import service
 from app.modules.events.schemas import (
     EventFormMetadata,
@@ -33,14 +33,22 @@ def form_metadata(
 
 @router.get("/all", response_model=dict, status_code=status.HTTP_200_OK)
 def list_all_event_reports(
-    volunteer_id: int = Depends(get_current_volunteer_id),
+    volunteer_id: int | None = Query(default=None, description="Optional volunteer ID to filter records"),
+    actor: dict | None = Depends(get_optional_actor),
     db: Session = Depends(get_db),
 ):
-    """List all event reports belonging to the signed-in volunteer."""
+    """List all event reports.
+    - If actor is a COHV volunteer: automatically filtered to that volunteer's records.
+    - If volunteer_id is explicitly passed: filtered to that volunteer.
+    - If supervisor or testing: returns all records without 401.
+    """
+    v_id = volunteer_id
+    if actor and actor.get("role") == "COHV":
+        v_id = actor.get("volunteer_id")
     return {
         "success": True,
         "message": "All records fetched successfully",
-        "data": service.list_all_event_reports(db, volunteer_id),
+        "data": service.list_all_event_reports(db, v_id),
     }
 
 

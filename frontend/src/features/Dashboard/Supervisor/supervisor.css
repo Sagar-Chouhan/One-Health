@@ -237,71 +237,294 @@
 }
 
 /* At a Glance Tiles */
-.sup-glance {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 12px;
-  align-items: stretch;
+/* ==========================================================================
+   Section Hierarchy & Section Headers
+   ========================================================================== */
+.sup-section {
+  margin-bottom: 32px;
 }
 
-.sup-tile {
-  background: var(--sup-paper-1);
-  border: 1px solid var(--sup-line);
-  border-radius: 14px;
-  padding: 14px 16px;
+.sup-section .sec-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid #cbd5e1;
+}
+
+.sup-section .sec-h h2 {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.sup-section .sec-h span {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   1. At a Glance 5 Cards Grid
+   ========================================================================== */
+.sup-glance-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1024px) {
+  .sup-glance-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .sup-glance-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sup-glance-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  box-shadow: 0 1px 3px rgba(11, 18, 32, 0.04);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  position: relative;
+  min-height: 120px;
 }
 
-.sup-tile.warn {
-  border-color: var(--sup-warn-border);
-  background: var(--sup-warn-bg);
+.sup-glance-card:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
-.sup-tile.warn .v {
-  color: var(--sup-warn-text);
+.sup-glance-card.dark {
+  background: #152438;
+  border-color: #152438;
+  color: #ffffff;
 }
 
-.sup-tile.link {
-  cursor: pointer;
-  text-decoration: none;
-  color: inherit;
+.sup-glance-card .card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
-.sup-tile.link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px -6px rgba(11, 18, 32, 0.12);
-  border-color: var(--sup-navy);
-}
-
-.sup-tile .l {
-  font-size: 0.76rem;
-  color: var(--sup-ink-500);
+.sup-glance-card .card-hdr {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
   font-weight: 600;
-  line-height: 1.35;
-  min-height: 2.7em;
+  color: #334155;
 }
 
-.sup-tile .v {
-  font-size: 1.85rem;
+.sup-glance-card.dark .card-hdr {
+  color: #cbd5e1;
+}
+
+.sup-glance-card .card-ico {
+  width: 16px;
+  height: 16px;
+  color: #475569;
+}
+
+.sup-glance-card.dark .card-ico {
+  color: #94a3b8;
+}
+
+.sup-glance-card .info-ico {
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+  opacity: 0.8;
+}
+
+.sup-glance-card.dark .info-ico {
+  color: #64748b;
+}
+
+.sup-glance-card .card-val {
+  font-size: 2.3rem;
   font-weight: 800;
-  color: var(--sup-ink-900);
+  color: #0f172a;
   line-height: 1.1;
+  margin-bottom: 4px;
   font-feature-settings: "tnum";
 }
 
-.sup-tile .cta {
-  font-size: 0.74rem;
-  color: var(--sup-rose);
+.sup-glance-card.dark .card-val {
+  color: #ffffff;
+}
+
+.sup-glance-card .card-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.sup-glance-card.dark .card-sub {
+  color: #94a3b8;
+}
+
+.sup-glance-card .card-link {
+  margin-top: 6px;
+  font-size: 0.82rem;
   font-weight: 700;
-  margin-top: 4px;
-  display: inline-flex;
+  color: #b85c78;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.sup-glance-card .card-link:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   2. Performance & KPIs 8 Cards Grid
+   ========================================================================== */
+.sup-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .sup-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 500px) {
+  .sup-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sup-kpi-card {
+  background: #152438;
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.sup-kpi-card .kpi-hdr {
+  display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+}
+
+.sup-kpi-card .kpi-ico {
+  width: 16px;
+  height: 16px;
+  color: #cbd5e1;
+}
+
+.sup-kpi-card .kpi-lbl {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.sup-kpi-card .kpi-val {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-top: 10px;
+  line-height: 1;
+  font-feature-settings: "tnum";
+}
+
+/* ==========================================================================
+   3. Approvals & Reports Jump 2 Cards Grid
+   ========================================================================== */
+.sup-jump-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .sup-jump-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sup-jump-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.sup-jump-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.sup-jump-card .jump-l {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sup-jump-card .jump-ico-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #fdf2f4;
+  border: 1px solid #fed7df;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sup-jump-card .jump-ico {
+  width: 22px;
+  height: 22px;
+  color: #b85c78;
+}
+
+.sup-jump-card .jump-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.sup-jump-card .jump-sub {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 3px;
+}
+
+.sup-jump-card .jump-arrow {
+  color: #b85c78;
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: transform 0.15s ease;
+}
+
+.sup-jump-card:hover .jump-arrow {
+  transform: translateX(4px);
 }
 
 /* Scope Pills Line */
