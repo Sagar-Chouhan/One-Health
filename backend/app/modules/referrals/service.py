@@ -169,11 +169,11 @@ def list_all_referrals(
                    r.event_date, r.referral_date, r.is_followed_up,
                    r.verification_status, r.created_at
             FROM public.referral r
-            JOIN public.volunteer_registration vr
+            LEFT JOIN public.volunteer_registration vr
               ON vr.volunteer_id = r.volunteer_id
-            JOIN public.v_village_hierarchy vh
+            LEFT JOIN public.v_village_hierarchy vh
               ON vh.village_lgd_code = r.village_lgd_code
-            JOIN public.referral_facility_master rfm
+            LEFT JOIN public.referral_facility_master rfm
               ON rfm.referral_facility_id = r.referral_facility_id
              AND rfm.referral_stream = r.referral_stream
             {where_sql}

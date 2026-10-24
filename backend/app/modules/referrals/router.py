@@ -67,17 +67,21 @@ def post_referral(
 @router.get("/all", response_model=ReferralAllResponse, status_code=status.HTTP_200_OK)
 def list_all_referral_records(
     volunteer_id: int | None = Query(default=None, description="Optional volunteer ID to filter records"),
+    supervisor_id: int | None = Query(default=None, description="Optional supervisor ID to filter records"),
     actor: dict | None = Depends(get_optional_actor),
     db: Session = Depends(get_db),
 ):
-    """List referrals. Works for volunteers, supervisors, or query by volunteer_id."""
+    """List all referrals.
+    - If actor is a COHV volunteer: automatically filtered to that volunteer's records.
+    - If volunteer_id is explicitly passed: filtered to that volunteer.
+    - If supervisor_id is explicitly passed: filtered to that supervisor.
+    - For supervisor or admin without filter: returns ALL referral records from the database.
+    """
     v_id = volunteer_id
-    s_id = None
-    if actor:
-        if actor.get("role") == "COHV":
-            v_id = actor.get("volunteer_id")
-        elif actor.get("role") == "SUPERVISOR":
-            s_id = actor.get("supervisor_id")
+    s_id = supervisor_id
+
+    if actor and actor.get("role") == "COHV":
+        v_id = actor.get("volunteer_id")
 
     records = service.list_all_referrals(db, owner_volunteer_id=v_id, supervisor_id=s_id)
     return {
