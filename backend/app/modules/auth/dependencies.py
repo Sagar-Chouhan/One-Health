@@ -98,3 +98,22 @@ def get_current_actor(
         return {"role": "SUPERVISOR", "supervisor_id": user_id, "claims": claims}
     else:
         raise unauthorized
+
+
+def get_optional_actor(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    db: Session = Depends(get_db),
+) -> dict | None:
+    """Returns actor info if valid token provided; returns None otherwise without raising 401."""
+    from app.main import app
+
+    if get_current_volunteer_id in app.dependency_overrides:
+        return {"role": "COHV", "volunteer_id": app.dependency_overrides[get_current_volunteer_id]()}
+
+    if credentials is None:
+        return None
+    try:
+        return get_current_actor(credentials=credentials, db=db)
+    except Exception:
+        return None
+

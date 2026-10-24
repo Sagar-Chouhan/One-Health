@@ -21,7 +21,7 @@ from app.modules.locations.router import router as locations_router
 from app.modules.supervisors.router import router as supervisors_router
 from app.modules.sample_support.router import router as sample_support_router
 from app.modules.success_stories.router import router as success_stories_router
-from app.modules.volunteers.router import router as volunteers_router
+from app.modules.volunteers.router import router as volunteers_router, singular_router as volunteer_singular_router
 
 app = FastAPI(
     title="OneHealth Volunteer API",
@@ -94,6 +94,7 @@ app.include_router(departments_router)
 app.include_router(locations_router)
 app.include_router(supervisors_router)
 app.include_router(volunteers_router)
+app.include_router(volunteer_singular_router)
 app.include_router(events_router)
 app.include_router(referrals_router)
 app.include_router(awareness_router)

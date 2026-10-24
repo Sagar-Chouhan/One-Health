@@ -99,3 +99,71 @@ def get_volunteer_profile(
     )
 
     return data
+
+
+def get_login_history(
+    db: Session,
+    *,
+    volunteer_id: int | None = None,
+    volunteer_code: str | None = None,
+    limit: int = 50,
+) -> list[dict[str, Any]]:
+    vid = volunteer_id
+    code = volunteer_code
+    if vid is None and volunteer_code:
+        row = db.execute(
+            text(
+                "SELECT volunteer_id, volunteer_code FROM public.volunteer_registration WHERE UPPER(volunteer_code) = UPPER(:c)"
+            ),
+            {"c": volunteer_code.strip()},
+        ).mappings().one_or_none()
+        if row:
+            vid = row["volunteer_id"]
+            code = row["volunteer_code"]
+
+    if vid is None:
+        return []
+
+    if code is None:
+        code = db.execute(
+            text("SELECT volunteer_code FROM public.volunteer_registration WHERE volunteer_id = :id"),
+            {"id": vid},
+        ).scalar_one_or_none()
+
+    rows = db.execute(
+        text(
+            """
+            SELECT login_id, volunteer_id, login_at, login_method, is_success,
+                   device_id, ip_address::text, user_agent
+            FROM public.login_history
+            WHERE volunteer_id = :vid
+            ORDER BY login_at DESC, login_id DESC
+            LIMIT :limit
+            """
+        ),
+        {"vid": vid, "limit": limit},
+    ).mappings().all()
+
+    return [{**dict(r), "volunteer_code": code} for r in rows]
+
+
+def update_volunteer_profile(
+    db: Session,
+    volunteer_id: int,
+    updates: dict[str, Any],
+) -> dict[str, Any] | None:
+    if not updates:
+        return get_volunteer_profile(db, volunteer_id=volunteer_id)
+
+    set_clauses = [f"{col} = :{col}" for col in updates.keys()]
+    set_clauses.append("updated_at = CURRENT_TIMESTAMP")
+    sql = text(
+        f"""
+        UPDATE public.volunteer_registration
+        SET {", ".join(set_clauses)}
+        WHERE volunteer_id = :volunteer_id
+        """
+    )
+    db.execute(sql, {"volunteer_id": volunteer_id, **updates})
+    db.commit()
+    return get_volunteer_profile(db, volunteer_id=volunteer_id)

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.security import decode_access_token
 from app.database.session import get_db
 from app.modules.auth import repository as auth_repo
-from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor
+from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor, get_optional_actor
 from app.modules.referrals import service
 from app.modules.referrals.schema import (
     ReferralCreate,
@@ -63,15 +63,27 @@ def post_referral(
     )
 
 
+@router.get("", response_model=ReferralAllResponse, status_code=status.HTTP_200_OK)
 @router.get("/all", response_model=ReferralAllResponse, status_code=status.HTTP_200_OK)
 def list_all_referral_records(
-    volunteer_id: int = Depends(get_current_volunteer_id),
+    volunteer_id: int | None = Query(default=None, description="Optional volunteer ID to filter records"),
+    actor: dict | None = Depends(get_optional_actor),
     db: Session = Depends(get_db),
 ):
+    """List referrals. Works for volunteers, supervisors, or query by volunteer_id."""
+    v_id = volunteer_id
+    s_id = None
+    if actor:
+        if actor.get("role") == "COHV":
+            v_id = actor.get("volunteer_id")
+        elif actor.get("role") == "SUPERVISOR":
+            s_id = actor.get("supervisor_id")
+
+    records = service.list_all_referrals(db, owner_volunteer_id=v_id, supervisor_id=s_id)
     return {
         "success": True,
         "message": "All records fetched successfully",
-        "data": service.list_all_referrals(db, volunteer_id),
+        "data": records,
     }
 
 

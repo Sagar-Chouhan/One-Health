@@ -140,10 +140,27 @@ def list_referrals(
     }
 
 
-def list_all_referrals(db: Session, owner_volunteer_id: int) -> list[dict]:
+def list_all_referrals(
+    db: Session,
+    owner_volunteer_id: int | None = None,
+    supervisor_id: int | None = None,
+    limit: int = 200,
+) -> list[dict]:
+    where_clauses = []
+    params: dict = {"limit": limit}
+
+    if owner_volunteer_id is not None:
+        where_clauses.append("r.volunteer_id = :volunteer_id")
+        params["volunteer_id"] = owner_volunteer_id
+    elif supervisor_id is not None:
+        where_clauses.append("vr.supervisor_id = :supervisor_id")
+        params["supervisor_id"] = supervisor_id
+
+    where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+
     rows = db.execute(
         text(
-            """
+            f"""
             SELECT r.referral_id, r.referral_code, r.volunteer_id,
                    vr.volunteer_name, r.referral_stream,
                    r.referral_facility_id, rfm.referral_facility_name,
@@ -159,14 +176,16 @@ def list_all_referrals(db: Session, owner_volunteer_id: int) -> list[dict]:
             JOIN public.referral_facility_master rfm
               ON rfm.referral_facility_id = r.referral_facility_id
              AND rfm.referral_stream = r.referral_stream
-            WHERE r.volunteer_id = :volunteer_id
+            {where_sql}
             ORDER BY r.referral_date DESC, r.referral_id DESC
+            LIMIT :limit
             """
         ),
-        {"volunteer_id": owner_volunteer_id},
+        params,
     ).mappings().all()
     items = [dict(row) for row in rows]
-    _add_referral_attachments(db, owner_volunteer_id, items)
+    if items:
+        _add_referral_attachments(db, owner_volunteer_id, items)
     return items
 
 
@@ -276,27 +295,28 @@ def get_referral_by_id(
 
 def _add_referral_attachments(
     db: Session,
-    volunteer_id: int,
+    volunteer_id: int | None,
     items: list[dict],
 ) -> None:
     if not items:
         return
+    where_extra = "AND volunteer_id = :volunteer_id" if volunteer_id is not None else ""
+    params: dict = {"entity_ids": [item["referral_id"] for item in items]}
+    if volunteer_id is not None:
+        params["volunteer_id"] = volunteer_id
     rows = db.execute(
         text(
-            """
+            f"""
             SELECT attachment_id, entity_id, file_kind, file_name,
                    storage_path, mime_type, size_bytes, caption
             FROM public.attachment
-            WHERE volunteer_id = :volunteer_id
-              AND entity_type = 'REFERRAL'
+            WHERE entity_type = 'REFERRAL'
               AND entity_id = ANY(:entity_ids)
+              {where_extra}
             ORDER BY attachment_id
             """
         ),
-        {
-            "volunteer_id": volunteer_id,
-            "entity_ids": [item["referral_id"] for item in items],
-        },
+        params,
     ).mappings().all()
     grouped: dict[int, list[dict]] = {}
     for row in rows:

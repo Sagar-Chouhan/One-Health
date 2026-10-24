@@ -369,3 +369,54 @@ def get_volunteer_profile(
         )
     return profile
 
+
+def get_login_history(
+    db: Session,
+    *,
+    volunteer_id: int | None = None,
+    volunteer_code: str | None = None,
+    limit: int = 50,
+) -> list[dict]:
+    history = volunteers_repo.get_login_history(
+        db,
+        volunteer_id=volunteer_id,
+        volunteer_code=volunteer_code,
+        limit=limit,
+    )
+    return history
+
+
+def edit_volunteer_profile(
+    db: Session,
+    *,
+    volunteer_id: int,
+    data: dict,
+    photo: UploadFile | None = None,
+) -> dict:
+    current = volunteers_repo.get_volunteer_profile(db, volunteer_id=volunteer_id)
+    if not current:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Volunteer not found.",
+        )
+
+    allowed_fields = {
+        "volunteer_name", "gender", "date_of_birth", "mobile_no", "email",
+        "institution_type_id", "institution_name", "other_institution_name",
+        "education_id", "profession_id", "state_lgd_code", "district_lgd_code",
+        "block_lgd_code", "gram_panchayat_lgd_code", "village_lgd_code"
+    }
+    updates = {}
+    for k, v in data.items():
+        if k in allowed_fields and v is not None and v != "":
+            updates[k] = v
+
+    if photo and photo.filename:
+        photo_file = read_photo(photo)
+        if photo_file is not None:
+            saved_photo = save_photo(current["volunteer_code"], *photo_file)
+            updates["photo_path"] = saved_photo
+
+    updated_profile = volunteers_repo.update_volunteer_profile(db, volunteer_id, updates)
+    return updated_profile
+

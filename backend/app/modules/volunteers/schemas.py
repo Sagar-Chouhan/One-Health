@@ -320,3 +320,42 @@ class VolunteerProfileResponse(BaseModel):
     referrals: int = 0
     awareness_activities: int = 0
 
+
+class LoginHistoryItem(BaseModel):
+    login_id: int
+    volunteer_id: int
+    volunteer_code: str | None = None
+    login_at: datetime
+    login_method: str
+    is_success: bool
+    device_id: str | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
+
+
+class LoginHistoryResponse(BaseModel):
+    success: bool = True
+    message: str = "Login history fetched successfully"
+    data: list[LoginHistoryItem]
+
+
+class VolunteerProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="ignore", str_strip_whitespace=True)
+
+    volunteer_name: str | None = Field(default=None, min_length=2, max_length=150)
+    gender: str | None = None
+    date_of_birth: date | None = None
+    mobile_no: str | None = None
+    email: str | None = None
+    institution_type_id: int | None = Field(default=None, gt=0)
+    institution_name: str | None = Field(default=None, max_length=200)
+    other_institution_name: str | None = Field(default=None, max_length=200)
+    education_id: int | None = Field(default=None, gt=0)
+    profession_id: int | None = Field(default=None, gt=0)
+    state_lgd_code: int | None = Field(default=None, gt=0)
+    district_lgd_code: int | None = Field(default=None, gt=0)
+    block_lgd_code: int | None = Field(default=None, gt=0)
+    gram_panchayat_lgd_code: int | None = Field(default=None, gt=0)
+    village_lgd_code: int | None = Field(default=None, gt=0)
+    photo: UploadFile | None = None
+

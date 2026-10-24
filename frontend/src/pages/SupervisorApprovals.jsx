@@ -4,7 +4,7 @@ import { Icon } from "../lib/icons.jsx";
 import { ShellTop, ShellBottom } from "../shell/Shell.jsx";
 import { useToast } from "../shell/ToastContext.jsx";
 import { getSession } from "../lib/session.js";
-import { apiAuthGet, apiAuthPost } from "../lib/api.js";
+import { apiGet, apiAuthGet, apiAuthPost } from "../lib/api.js";
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -138,53 +138,6 @@ const ALERT_SEVERITY_STYLES = {
   },
 };
 
-const DEFAULT_ALERTS = [
-  {
-    alert_id: "AL-26-4000",
-    alert_code: "AL-26-4000",
-    alert_name: "Environmental alert",
-    volunteer_name: "D. Mallesh",
-    volunteer_code: "COHV-0178",
-    severity: "MODERATE",
-    village_name: "Kalmulonipally",
-    stage: "Stage 2/7",
-    current_owner: "Supervisor · you",
-    closure_status: "OPEN",
-    alert_date: "2026-10-18T10:30:00Z",
-    description: "Chemical run-off and unusual discoloration detected near village water stream.",
-    action_taken: "Sample collected and perimeter tagged.",
-  },
-  {
-    alert_id: "AL-26-1399",
-    alert_code: "AL-26-1399",
-    alert_name: "Zoonotic fever cluster",
-    volunteer_name: "POLUMURI BALAKISTAIAH",
-    volunteer_code: "COHV-0137",
-    severity: "HIGH",
-    village_name: "Amrabad",
-    stage: "Stage 3/7",
-    current_owner: "Supervisor · you",
-    closure_status: "OPEN",
-    alert_date: "2026-10-19T08:15:00Z",
-    description: "Cluster of cattle with fever and mucosal blisters reported.",
-    action_taken: "Immediate isolation advised, preliminary blood smear prepared.",
-  },
-  {
-    alert_id: "AL-26-8951",
-    alert_code: "AL-26-8951",
-    alert_name: "Livestock health alert",
-    volunteer_name: "B. Bayanna",
-    volunteer_code: "COHV-0188",
-    severity: "MODERATE",
-    village_name: "Madavanipally",
-    stage: "Stage 2/7",
-    current_owner: "Supervisor · you",
-    closure_status: "OPEN",
-    alert_date: "2026-10-20T14:45:00Z",
-    description: "Sudden respiratory distress symptoms in 6 sheep flocks.",
-    action_taken: "Veterinary assistant notified on site.",
-  },
-];
 
 function Tag({ status }) {
   const label = STATUS_LABEL[status] || status;
@@ -207,6 +160,7 @@ export default function SupervisorApprovals() {
   const [regs, setRegs] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [verifs, setVerifs] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [escalateDepts, setEscalateDepts] = useState({});
   const [selectedAlertModal, setSelectedAlertModal] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -242,24 +196,26 @@ export default function SupervisorApprovals() {
         if (e.status === 401) navigate("/");
         return [];
       }),
+      apiGet("/api/departments").catch(() => []),
     ])
-      .then(([regRows, alertRows, verifRows]) => {
+      .then(([regRows, alertRows, verifRows, deptRows]) => {
         setRegs(regRows || []);
-        const rawAlerts = alertRows && alertRows.length > 0 ? alertRows : DEFAULT_ALERTS;
+        const rawAlerts = alertRows || [];
         const normalized = rawAlerts.map((al) => ({
           ...al,
-          alert_id: al.alert_id || al.alert_code || "AL-26-4000",
+          alert_id: al.alert_id || al.alert_code,
           alert_name: al.alert_name || al.alert_type || al.title || "Environmental alert",
-          alert_code: al.alert_code || "AL-26-4000",
-          volunteer_name: al.volunteer_name || "D. Mallesh",
-          volunteer_code: al.volunteer_code || "COHV-0178",
+          alert_code: al.alert_code || `ALERT-${al.alert_id}`,
+          volunteer_name: al.volunteer_name || "—",
+          volunteer_code: al.volunteer_code || "—",
           severity: (al.severity || "MODERATE").toUpperCase(),
-          village_name: al.village_name || al.village || "Kalmulonipally",
+          village_name: al.village_name || al.village || "—",
           stage: al.stage || "Stage 2/7",
           current_owner: al.current_owner || "Supervisor · you",
         }));
         setAlerts(normalized);
         setVerifs(verifRows || []);
+        setDepartments(deptRows || []);
       })
       .catch((e) => toast(e.message || "Failed to load approval queues"))
       .finally(() => setLoading(false));
@@ -876,17 +832,17 @@ export default function SupervisorApprovals() {
                                 letterSpacing: "0.02em",
                               }}
                             >
-                              {al.alert_code || "AL-26-4000"}
+                              {al.alert_code || `ALERT-${al.alert_id}`}
                             </div>
                           </td>
 
                           {/* VOLUNTEER */}
                           <td style={{ padding: "14px 16px", verticalAlign: "middle" }}>
                             <div style={{ fontWeight: "700", color: "#0f172a", fontSize: "0.88rem" }}>
-                              {al.volunteer_name || "D. Mallesh"}
+                              {al.volunteer_name || "—"}
                             </div>
                             <div style={{ fontSize: "0.76rem", color: "#64748b", marginTop: "3px" }}>
-                              {al.volunteer_code || "COHV-0178"}
+                              {al.volunteer_code || "—"}
                             </div>
                           </td>
 
@@ -920,7 +876,7 @@ export default function SupervisorApprovals() {
                               fontWeight: "500",
                             }}
                           >
-                            {al.village_name || al.village || "Kalmulonipally"}
+                            {al.village_name || al.village || "—"}
                           </td>
 
                           {/* STAGE */}
@@ -965,11 +921,11 @@ export default function SupervisorApprovals() {
                               }}
                             >
                               <option value="">— Select department —</option>
-                              <option value="Animal Husbandry">Animal Husbandry</option>
-                              <option value="Public Health">Public Health</option>
-                              <option value="Forest & Wildlife">Forest &amp; Wildlife</option>
-                              <option value="Agriculture & Irrigation">Agriculture &amp; Irrigation</option>
-                              <option value="District Nodal Officer">District Nodal Officer</option>
+                              {departments.map((d) => (
+                                <option key={d.department_id} value={d.department_name}>
+                                  {d.department_name}
+                                </option>
+                              ))}
                             </select>
                           </td>
 
@@ -1408,9 +1364,11 @@ export default function SupervisorApprovals() {
                     Location
                   </div>
                   <div style={{ fontWeight: "700", color: "#0f172a", marginTop: "2px" }}>
-                    {selectedAlertModal.village_name}
+                    {selectedAlertModal.village_name || "—"}
                   </div>
-                  <div style={{ color: "#64748b", fontSize: "0.75rem" }}>Amrabad · Nagarkurnool</div>
+                  <div style={{ color: "#64748b", fontSize: "0.75rem" }}>
+                    {[selectedAlertModal.block_name, selectedAlertModal.district_name].filter(Boolean).join(" · ") || ""}
+                  </div>
                 </div>
 
                 <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px" }}>
@@ -1478,8 +1436,7 @@ export default function SupervisorApprovals() {
                     lineHeight: "1.45",
                   }}
                 >
-                  {selectedAlertModal.description ||
-                    "Water source contamination & unusual fish mortality near forest perimeter reported."}
+                  {selectedAlertModal.description || "No observation details recorded."}
                 </div>
               </div>
 

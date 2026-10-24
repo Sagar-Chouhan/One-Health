@@ -55,6 +55,15 @@ def verify_pin(pin: str, stored: str) -> bool:
 DUMMY_PIN_HASH = hash_pin(secrets.token_hex(8))
 
 
+def get_signing_key() -> str:
+    """Ensure signing key has at least 32 bytes for HS256 to comply with RFC 7518 Section 3.2
+    and prevent PyJWT InsecureKeyLengthWarning."""
+    raw = settings.SECRET_KEY or "onehealth_secret_key_default_32bytes_minimum_length_required"
+    if len(raw.encode("utf-8")) < 32:
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    return raw
+
+
 def create_access_token(subject_id: int, code: str, role: str = "COHV") -> tuple[str, int]:
     """Signed JWT for a volunteer (role COHV) or supervisor (role SUPERVISOR).
     Returns (token, lifetime in seconds).
@@ -72,13 +81,13 @@ def create_access_token(subject_id: int, code: str, role: str = "COHV") -> tuple
         "iat": now,
         "exp": now + lifetime,
     }
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm=JWT_ALGORITHM)
+    token = jwt.encode(payload, get_signing_key(), algorithm=JWT_ALGORITHM)
     return token, int(lifetime.total_seconds())
 
 
 def decode_access_token(token: str) -> dict | None:
     """The token's claims, or None if it is forged, malformed or expired."""
     try:
-        return jwt.decode(token, settings.SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        return jwt.decode(token, get_signing_key(), algorithms=[JWT_ALGORITHM])
     except jwt.PyJWTError:
         return None
