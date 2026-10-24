@@ -32,6 +32,16 @@ def list_all_awareness_activities(
     }
 
 
+@router.get("/activity-types")
+def activity_types(db: Session = Depends(get_db)):
+    return repository.list_activity_types(db)
+
+
+@router.get("/topics")
+def topics(db: Session = Depends(get_db)):
+    return repository.list_topics(db)
+
+
 @router.get(
     "/{awareness_id}",
     response_model=AwarenessSingleResponse,
@@ -71,13 +81,3 @@ def create_awareness_activity(
     db: Session = Depends(get_db),
 ):
     return service.create_activity(db, volunteer_id, data)
-
-
-@router.get("/activity-types")
-def activity_types(db: Session = Depends(get_db)):
-    return repository.list_activity_types(db)
-
-
-@router.get("/topics")
-def topics(db: Session = Depends(get_db)):
-    return repository.list_topics(db)

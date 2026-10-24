@@ -48,3 +48,15 @@ def test_get_all_awareness_activities():
         assert isinstance(data["data"], list)
     finally:
         app.dependency_overrides.pop(get_current_volunteer_id, None)
+
+
+def test_get_awareness_topics_and_activity_types_without_auth():
+    client = TestClient(app)
+    resp_topics = client.get("/api/awareness-activities/topics")
+    assert resp_topics.status_code == 200
+    assert isinstance(resp_topics.json(), list)
+
+    resp_types = client.get("/api/awareness-activities/activity-types")
+    assert resp_types.status_code == 200
+    assert isinstance(resp_types.json(), list)
+
