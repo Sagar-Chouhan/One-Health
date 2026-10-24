@@ -1,0 +1,196 @@
+/* One Health portal — styles shared by the data pages (department pages, Surveillance):
+   title band, filter panel, key-figure cards, graph cards, tables.
+   Sizes follow the one scale in portal.css: text 12 / 13 / 14 / 15 / 16 / 18 / 24 / 28 / 32 px, controls 42px and 34px, radius 6px. */
+/* Chart colours — checked with the dataviz palette validator (all pairs, colour-blind safe, on white).
+   Diseases: KFD / Avian Influenza / Brucellosis. Sex: men / women. Lab result: positive / inconclusive / negative. */
+:root{
+  --c-kfd:#12876f; --c-avian:#4f95e0; --c-bruc:#7a2fa8;
+  --c-men:#2a66a8; --c-women:#b85c78;
+  --c-pos:#8a3f57; --c-inc:#c9a7b2; --c-neg:#e3e6ec;
+  --field:#cfc6c0;
+}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+select,input,button{font:inherit;color:inherit}
+[hidden]{display:none!important}
+
+/* ===== Title band ===== */
+.band .wrap.band-slim{display:block;padding-top:14px;padding-bottom:20px}
+.band-top{display:flex;align-items:center;justify-content:space-between;gap:12px 24px;flex-wrap:wrap}
+.band-top .crumb{margin:0}
+.band-top .stamp{font-size:.875rem}
+.title{display:flex;align-items:center;gap:14px;margin-top:12px;min-width:0}
+.title img{height:54px;width:auto;flex:none}
+.title h1{font-size:1.75rem}
+.title h1 .hi{margin-top:2px;font-size:.9375rem}
+
+/* ===== Filter panel ===== */
+.fpanel{margin-top:16px;background:#fff;border:1px solid #ecd3c5;border-radius:6px}
+.fgrid{display:grid;grid-template-columns:repeat(var(--fc,5),minmax(0,280px)) auto;justify-content:start;gap:12px;align-items:end;padding:14px 16px}
+.fl{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fl span{font-size:.8125rem;font-weight:600;color:var(--ink)}
+.fl select{width:100%;height:42px;padding:0 34px 0 12px;border:1px solid var(--field);border-radius:6px;background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 12px center;font-size:.9375rem;font-weight:400;color:var(--ink);cursor:pointer;-webkit-appearance:none;appearance:none;text-overflow:ellipsis}
+.fl select:hover{border-color:var(--ink-500)}
+.fl select:focus{outline:none;border-color:var(--rose-dark);box-shadow:0 0 0 3px rgba(184,92,120,.2)}
+.fl select.changed{border-color:#c2410c;background-color:#fff8f1}
+.fbtns{display:flex;gap:8px}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 18px;border-radius:6px;font-size:.9375rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.b svg.i{width:16px;height:16px}
+.b.pri{border:1px solid var(--rose-deep);background:var(--rose-deep);color:#fff}
+.b.pri:hover{background:#73344a}
+.b.sec{border:1px solid var(--field);background:#fff;color:var(--ink)}
+.b.sec:hover{border-color:var(--ink-500);background:#faf7f5}
+
+/* ===== Content ===== */
+.content{padding-top:18px}
+.showing{display:flex;align-items:flex-start;gap:8px;margin:0 0 16px;font-size:.875rem;line-height:1.5;color:var(--ink-700)}
+.showing svg.i{width:16px;height:16px;margin-top:3px;color:var(--ink-500)}
+.showing b{color:var(--ink);font-weight:600}
+.showing em{font-style:normal;color:var(--ink-500)}
+.card{background:#fff;border:1px solid var(--line);border-radius:6px}
+
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:30px 0 14px;padding-bottom:9px;border-bottom:2px solid var(--ink)}
+.sec-h h2{font-size:1.125rem;font-weight:700}
+.sec-h span{font-size:.875rem;color:var(--ink-600)}
+
+/* ===== KPI cards: five equal, compact cards ===== */
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.kpi{display:flex;align-items:center;gap:14px;padding:14px 16px;min-width:0}
+.kico{width:46px;height:46px;border-radius:6px;background:var(--rose-deep);color:#fff;display:grid;place-items:center;flex:none}
+.kico svg.i{width:23px;height:23px}
+.kpi .txt{min-width:0}
+.kpi .l{display:block;font-size:.875rem;font-weight:600;line-height:1.3;color:var(--ink-600)}
+.kpi .v{display:flex;align-items:baseline;gap:7px;margin-top:3px;font-size:2rem;font-weight:800;letter-spacing:-.025em;line-height:1.05;color:var(--ink)}
+.kpi .v small{margin-left:1px;font-size:.8125rem;font-weight:600;letter-spacing:0;color:var(--ink-600);white-space:nowrap}
+.delta{display:flex;align-items:center;gap:4px;margin-top:4px;font-size:.8125rem;line-height:1.3;color:var(--ink-600);white-space:nowrap}
+.delta svg.i{width:14px;height:14px;color:var(--ink-700)}
+.kpi.main{background:var(--ink);border-color:var(--ink)}
+.kpi.main .kico{background:#fff;color:var(--ink)}
+.kpi.main .l{color:#cbd5e1}
+.kpi.main .v{color:#fff}
+.kpi.main .v small{color:#cbd5e1}
+.kpi.main .delta{color:#cbd5e1}
+.kpi.main .delta svg.i{color:#fff}
+
+/* ===== Chart cards ===== */
+.charts{display:grid;gap:16px}
+.charts.full{grid-template-columns:minmax(0,1fr)}
+.charts.wide{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+.charts.two{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}
+.chart{display:flex;flex-direction:column;min-width:0}
+.ch-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;padding:14px 18px 12px;border-bottom:1px solid var(--line-2)}
+.ch-head h3{font-size:1rem;font-weight:700;line-height:1.3}
+.ch-head p{margin:2px 0 0;font-size:.8125rem;color:var(--ink-600)}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--field);border-radius:6px;overflow:hidden}
+.seg button{height:34px;padding:0 11px;border:0;border-left:1px solid var(--field);background:#fff;font-size:.8125rem;font-weight:600;color:var(--ink-700);cursor:pointer;white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button:hover{background:#faf7f5}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.tbtn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 10px;border:1px solid var(--field);border-radius:6px;background:#fff;font-size:.8125rem;font-weight:600;color:var(--ink-700);cursor:pointer}
+.tbtn:hover{border-color:var(--ink-500)}
+.tbtn svg.i{width:15px;height:15px}
+.tbtn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.tbtn.ico{width:34px;padding:0;justify-content:center}
+.ch-body{flex:1;padding:14px 18px 16px;min-width:0}
+.ch-foot{display:flex;align-items:center;gap:7px;padding:9px 18px;border-top:1px solid var(--line-2);font-size:.8125rem;color:var(--ink-600)}
+.ch-foot svg.i{width:14px;height:14px;color:var(--ink-500)}
+.plot.is-empty{display:none}
+.empty{padding:34px 0;text-align:center;font-size:.9375rem;color:var(--ink-600)}
+.tview{max-height:300px;overflow:auto}
+.tview table{width:100%;border-collapse:collapse;font-size:.875rem}
+.tview th{position:sticky;top:0;background:#f3ede9;text-align:right;padding:8px 10px;font-size:.8125rem;color:var(--ink);white-space:nowrap}
+.tview td{padding:7px 10px;border-bottom:1px solid var(--line-2);text-align:right;font-variant-numeric:tabular-nums}
+.tview th:first-child,.tview td:first-child{text-align:left}
+.tview td:first-child{color:var(--ink);font-weight:500}
+
+/* Rural / urban split */
+.area{margin-top:16px;padding-top:14px;border-top:1px solid var(--line-2)}
+.area h4{margin:0 0 8px;font-size:.875rem;font-weight:700;color:var(--ink)}
+.stack{display:flex;gap:2px;height:18px}
+.stack i{display:block;height:100%;min-width:3px;background:var(--c)}
+.stack i:first-child{border-radius:4px 0 0 4px}
+.stack i:last-child{border-radius:0 4px 4px 0}
+.stack i:only-child{border-radius:4px}
+.nums{display:flex;flex-wrap:wrap;gap:4px 18px;margin:9px 0 0;padding:0;list-style:none;font-size:.875rem;color:var(--ink-700)}
+.nums li{display:inline-flex;align-items:center;gap:6px}
+.nums i{width:10px;height:10px;border-radius:2px;background:var(--c)}
+.nums b{color:var(--ink)}
+
+/* Lab rings + sign columns */
+.cols{display:grid;grid-template-columns:repeat(var(--n,1),minmax(0,1fr));gap:18px 30px}
+.cols.narrow{max-width:640px}
+.col h4{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line-2);font-size:.9375rem;font-weight:700;color:var(--ink)}
+.col h4 i{width:10px;height:10px;border-radius:2px;background:var(--c);flex:none}
+.ring{display:flex;align-items:center;gap:14px}
+.donut{width:116px;height:116px;flex:none}
+.ring .meta{min-width:0}
+.ring .meta b.big{display:block;font-size:1.5rem;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--ink)}
+.ring .meta span.s{display:block;margin-top:3px;font-size:.8125rem;color:var(--ink-600)}
+.ring .nums{flex-direction:column;gap:3px;margin-top:9px}
+.cols.multi .ring{flex-direction:column;align-items:flex-start;gap:12px}
+.col .how{margin:10px 0 0;font-size:.8125rem;color:var(--ink-500)}
+
+/* Department with no data yet */
+main{min-height:calc(100vh - 300px)}
+.nodata{max-width:560px;margin:40px auto;padding:36px 32px;text-align:center}
+.nodata>svg.i{width:34px;height:34px;color:var(--ink-500)}
+.nodata h2{margin-top:12px;font-size:1.125rem}
+.nodata p{margin:8px 0 20px;color:var(--ink-600)}
+
+/* ===== Parameter list ===== */
+.plist-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin:30px 0 12px;padding-bottom:10px;border-bottom:2px solid var(--ink)}
+.plist-head h2{font-size:1.125rem;font-weight:700}
+.plist-head p{margin:3px 0 0;font-size:.875rem;color:var(--ink-600)}
+.find{position:relative}
+.find svg.i{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-500);pointer-events:none}
+.find input{color:var(--ink);width:290px;max-width:100%;height:42px;padding:0 12px 0 36px;border:1px solid var(--field);border-radius:6px;background:#fff;font-size:.9375rem}
+.find input:focus{outline:none;border-color:var(--rose-dark);box-shadow:0 0 0 3px rgba(184,92,120,.2)}
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;min-width:820px;border-collapse:collapse;font-size:.875rem}
+.tbl th{text-align:left;padding:10px 14px;background:#f3ede9;color:var(--ink);font-weight:700;font-size:.8125rem;white-space:nowrap;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--line-2);vertical-align:top;color:var(--ink-700);line-height:1.4}
+.tbl td:first-child{color:var(--ink);font-weight:500;min-width:260px}
+.tbl tr:last-child td{border-bottom:0}
+/* short cells stay on one line: "All three", "Tamil Nadu" */
+.tbl td:nth-child(2){min-width:100px}
+.tbl td:nth-child(6){white-space:nowrap}
+/* a long source name (a full ministry name): two even lines on small screens, one line on wide ones */
+.tbl.src-wide td:nth-child(3){min-width:216px;text-wrap:balance}
+@media (min-width:1280px){ .tbl.src-wide td:nth-child(3){white-space:nowrap} }
+.how-d{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.how-d::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--h)}
+.plist-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-top:1px solid var(--line);font-size:.875rem;color:var(--ink-600)}
+
+
+/* ===== Responsive ===== */
+@media (max-width:1279px){
+  .fgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .fbtns{grid-column:3;justify-content:flex-end}
+  .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .delta{white-space:normal}
+}
+@media (max-width:1099px){
+  .charts.wide,.charts.two{grid-template-columns:1fr}
+  .cols{grid-template-columns:1fr}
+}
+@media (max-width:767px){
+  .title h1{font-size:1.375rem}
+  .sec-h span{display:none}
+  .title img{height:42px}
+  .fgrid{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}
+  .fbtns{grid-column:1 / -1}
+  .fbtns .b{flex:1}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kpi{padding:12px;gap:10px}
+  .kico{width:40px;height:40px}
+  .kpi .v{font-size:1.5rem}
+  .kpi.main{grid-column:1 / -1}
+  .ch-head,.ch-body{padding-left:14px;padding-right:14px}
+  .ch-foot{padding:9px 14px}
+  .find,.find input{width:100%}
+}
+/* small phones: a three-button switch must stay inside its card */
+@media (max-width:420px){
+  .seg{max-width:100%}
+  .seg button{flex:1 1 auto;min-width:0;padding:0 6px;font-size:.75rem}
+}

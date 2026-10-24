@@ -1,0 +1,152 @@
+/* One Health portal — styles of the Surveillance screens and the disease pages (on top of data-page.css) */
+
+/* Title row */
+.band-main{display:flex;align-items:flex-end;justify-content:space-between;gap:14px 32px;flex-wrap:wrap;margin-top:12px}
+.band-main h1{font-size:1.75rem}
+.band-main h1 .hi{margin-top:2px;font-size:.9375rem}
+
+/* Animal has three parts of its own */
+.subtabs{display:inline-flex;margin-top:14px;border:1px solid #e6cdbf;border-radius:6px;overflow:hidden;background:#fff}
+.subtabs a{display:inline-flex;align-items:center;height:34px;padding:0 14px;border-left:1px solid #e6cdbf;color:var(--ink-700);font-size:.8125rem;font-weight:600;white-space:nowrap}
+.subtabs a:first-child{border-left:0}
+.subtabs a:hover{background:#faf7f5;text-decoration:none}
+.subtabs a[aria-current="page"]{background:var(--ink);color:#fff}
+.subtabs+.fpanel{margin-top:12px}
+
+/* Filter panel: seven to nine fields in two rows (the number of columns is set for each screen) */
+.fgrid.wide{grid-template-columns:repeat(var(--fcols,5),minmax(0,1fr));justify-content:stretch}
+.fgrid.wide .fbtns{grid-column-end:-1;justify-content:flex-end}
+.fgrid.wide.c6 .fbtns{grid-column:span 2 / -1}
+.fl input[type="date"]{width:100%;height:42px;padding:0 10px 0 12px;border:1px solid var(--field);border-radius:6px;background:#fff;font-size:.9375rem;color:var(--ink)}
+.fl input[type="date"]:hover{border-color:var(--ink-500)}
+.fl input[type="date"]:focus{outline:none;border-color:var(--rose-dark);box-shadow:0 0 0 3px rgba(184,92,120,.2)}
+.fl input[type="date"].changed{border-color:#c2410c;background-color:#fff8f1}
+.fl select:disabled{background-color:#f4f1ee;color:var(--ink-500);cursor:not-allowed}
+
+/* Six key figures in one row. Each has a small "i" that explains the figure and names its source. */
+.kpis.six{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.kpis.six .kpi{position:relative;display:block;padding:13px 14px 13px}
+.kpis.six .kpi .l{display:flex;align-items:center;gap:6px;padding-right:22px;font-size:.8125rem;white-space:nowrap}
+.kpis.six .kpi .l svg.i{width:16px;height:16px;color:var(--rose-deep)}
+.kpis.six .kpi.main .l svg.i{color:#fff}
+.kpis.six .kpi .v{margin-top:6px;font-size:1.75rem}
+.kpis.six .kpi .delta{white-space:normal}
+.kinfo{position:absolute;top:7px;right:7px;width:24px;height:24px;padding:0;border:0;border-radius:4px;background:none;color:var(--ink-500);display:grid;place-items:center;cursor:help}
+.kinfo svg.i{width:15px;height:15px}
+.kinfo:hover,.kinfo:focus-visible{color:var(--ink)}
+.kpi.main .kinfo{color:#cbd5e1}
+.kpi.main .kinfo:hover,.kpi.main .kinfo:focus-visible{color:#fff}
+.ktip{display:none;position:absolute;top:34px;right:6px;z-index:20;width:252px;padding:10px 12px;border-radius:6px;background:var(--ink);color:#fff;font-size:.8125rem;line-height:1.45;box-shadow:0 8px 20px rgba(15,23,42,.25)}
+.ktip em{display:block;margin-top:6px;font-style:normal;color:#cbd5e1}
+.kinfo:hover+.ktip,.kinfo:focus+.ktip{display:block}
+.kpi.main .ktip{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.kpi.main .ktip em{color:var(--ink-600)}
+.kpis.six .kpi:first-child .ktip{right:auto;left:6px}
+
+/* Graph rows. "lead": one tall graph on the left, two shorter ones stacked on the right. "three": three in a row. */
+.charts.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.charts.lead{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+.charts.lead>.chart:first-child{grid-row:span 2}
+.keys{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 12px;padding:0;list-style:none;font-size:.8125rem;color:var(--ink-700)}
+.keys li{display:inline-flex;align-items:center;gap:7px}
+.keys i{width:10px;height:10px;border-radius:2px;background:var(--c);flex:none}
+.keys b{color:var(--ink);font-weight:700}
+/* share ring with its list */
+.share{display:flex;align-items:center;gap:22px}
+.share .pie{width:168px;height:168px;flex:none}
+.share ul{flex:1;min-width:0;margin:0;padding:0;list-style:none}
+.share li{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:center;gap:9px;padding:6px 0;font-size:.875rem;color:var(--ink-700)}
+.share li+li{border-top:1px solid var(--line-2)}
+.share li i{width:10px;height:10px;border-radius:2px;background:var(--c)}
+.share li b{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* Table of numbers with a colour for each level (vaccine by state, stock by store) */
+.heat{overflow-x:auto}
+.heat table{width:100%;min-width:430px;border-collapse:separate;border-spacing:3px;font-size:.8125rem}
+.heat th{padding:6px 4px;font-weight:600;color:var(--ink-700);text-align:center;white-space:nowrap}
+.heat tbody th{padding-left:0;padding-right:10px;text-align:left;font-weight:500;color:var(--ink)}
+.heat td{width:11.5%;padding:9px 0;border-radius:4px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;background:var(--bg);color:var(--fg)}
+.heat+.keys{margin:14px 0 0}
+.keys.box i{border:1px solid rgba(31,42,68,.18)}
+.note{margin:10px 0 0;font-size:.8125rem;color:var(--ink-600)}
+
+/* List of disaster alerts */
+.alerts{margin:0;padding:0;list-style:none}
+.alerts li{display:grid;grid-template-columns:74px minmax(0,1fr);gap:12px;padding:11px 0}
+.alerts li+li{border-top:1px solid var(--line-2)}
+.alerts li:first-child{padding-top:0}
+.alerts li:last-child{padding-bottom:0}
+.sev{align-self:start;height:24px;border-radius:4px;display:grid;place-items:center;font-size:.75rem;font-weight:700;background:var(--bg);color:var(--fg)}
+.alerts b{display:block;font-size:.875rem;font-weight:700;line-height:1.35;color:var(--ink)}
+.alerts p{margin:2px 0 0;font-size:.8125rem;line-height:1.45;color:var(--ink-700)}
+.alerts small{display:block;margin-top:3px;font-size:.75rem;color:var(--ink-500)}
+
+/* 1280 to 1365 px wide: the six cards are at their narrowest, so the small icon before the label gives way to the text */
+@media (min-width:1280px) and (max-width:1365px){ .kpis.six .kpi .l svg.i{display:none} }
+@media (max-width:1279px){
+  .kpis.six{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kpis.six .kpi:nth-child(4) .ktip{right:auto;left:6px}
+  .fgrid.wide{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .fgrid.wide .fbtns,.fgrid.wide.c6 .fbtns{grid-column:auto / -1}
+}
+@media (max-width:1099px){
+  .charts.three{grid-template-columns:1fr}
+  .charts.lead{grid-template-columns:1fr}
+  .charts.lead>.chart:first-child{grid-row:auto}
+  .fgrid.wide{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:767px){
+  .band-main h1{font-size:1.375rem}
+  .fgrid.wide{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fgrid.wide .fbtns,.fgrid.wide.c6 .fbtns{grid-column:1 / -1}
+  .subtabs{display:flex}
+  .subtabs a{flex:1;justify-content:center;padding:0 8px}
+  .alerts li{grid-template-columns:66px minmax(0,1fr);gap:10px}
+  .kpis.six{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kpis.six .kpi.main{grid-column:auto}
+  .kpis.six .kpi{padding:12px 10px 12px 12px}
+  .kpis.six .kpi .l{white-space:normal}
+  .kpis.six .kpi:nth-child(odd) .ktip{right:auto;left:6px}
+  .kpis.six .kpi:nth-child(even) .ktip{left:auto;right:6px}
+  .ktip{width:230px}
+  .share{flex-direction:column;align-items:flex-start;gap:14px}
+  .share ul{width:100%}
+}
+
+/* a row of graphs with only one graph left after a filter: it takes the full width */
+.charts.solo{grid-template-columns:minmax(0,1fr)}
+.charts.solo>.chart:first-child{grid-row:auto}
+
+/* ===== Disease pages ===== */
+/* a key figure that is a word ("Suspended", "Cattle") is set a little smaller than a number */
+.kpis.six .kpi .v.word{font-size:1.5rem;line-height:1.2}
+@media (max-width:767px){ .kpis.six .kpi .v.word{font-size:1.25rem;line-height:1.3} }
+.band .dsub{margin:6px 0 0;max-width:none;font-size:.875rem;color:var(--ink-700)}
+.dmeta{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;margin:10px 0 0;padding:0;list-style:none;font-size:.8125rem;font-weight:600;color:var(--ink)}
+.dmeta li+li{padding-left:14px;border-left:1px solid #e6cdbf}
+.dmeta li:first-child+li{padding-left:0;border-left:0}
+.lvl{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border-radius:4px;background:var(--bg);color:var(--fg);font-size:.75rem;font-weight:700;white-space:nowrap}
+.lvl svg.i{width:13px;height:13px}
+/* a few numbers side by side */
+.cmp table{width:100%;border-collapse:collapse;font-size:.9375rem}
+.cmp th,.cmp td{padding:11px 10px;border-bottom:1px solid var(--line-2);text-align:right}
+.cmp thead th{background:#f3ede9;font-size:.8125rem;color:var(--ink);white-space:nowrap}
+.cmp tbody th{text-align:left;font-weight:500;color:var(--ink)}
+.cmp td{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cmp td.na{font-weight:500;color:var(--ink-500)}
+.cmp td small{font-size:.75rem;font-weight:400}
+.cmp tr>:first-child{padding-left:0}
+.splist{margin:0;padding:0;list-style:none}
+.splist li{display:grid;grid-template-columns:128px minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--line-2);font-size:.875rem}
+.splist li:first-child{padding-top:0}
+.splist li:last-child{padding-bottom:0;border-bottom:0}
+.splist b{font-weight:600;color:var(--ink)}
+.splist span{color:var(--ink-700)}
+.srcs{padding:16px 18px}
+.srcs ul{margin:0;padding-left:18px;font-size:.875rem;line-height:1.6;color:var(--ink-700)}
+.srcs li+li{margin-top:4px}
+@media (max-width:767px){
+  .splist li{grid-template-columns:104px minmax(0,1fr)}
+  .srcs{padding:14px}
+}
+

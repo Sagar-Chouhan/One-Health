@@ -1,0 +1,207 @@
+/* One Health portal — shared styles (PM identity: rose #b85c78 / #a04d68 / #8a3f57, peach #fce9de, ink #1f2a44, Inter).
+   Pillar colours are the three circles of the One Health logo, darkened so white text passes contrast. */
+:root{
+  --rose:#b85c78; --rose-dark:#a04d68; --rose-deep:#8a3f57; --rose-tint:#f9eef2; --peach:#fce9de;
+  --ink:#1f2a44; --ink-700:#334155; --ink-600:#475569; --ink-500:#5b6678;
+  --line:#e2dad5; --line-2:#efe9e5; --page:#f7f3f0;
+  --human:#a04d68; --animal:#c2410c; --env:#15803d; --coord:#475569;
+  --live:#15803d; --late:#b45309; --off:#64748b;
+  --crit:#b91c1c; --elev:#c2410c; --watch:#a16207; --ok:#15803d;
+}
+/* Text size (A- / A / A+): rem-based, so every size on the page scales together */
+html{font-size:100%}
+html.fs-sm{font-size:93.75%} html.fs-lg{font-size:112.5%}
+*{box-sizing:border-box}
+html{background:var(--ink)}
+body{margin:0;background:var(--page);font-family:'Inter',-apple-system,'Segoe UI',Roboto,sans-serif;font-size:.9375rem;line-height:1.55;color:var(--ink-700);-webkit-font-smoothing:antialiased}
+a{color:var(--rose-dark);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+h1,h2,h3{margin:0;color:var(--ink)}
+.hi{font-family:'Noto Sans Devanagari','Inter',sans-serif}
+svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1360px;margin:0 auto;padding:0 28px}
+.skip{position:absolute;left:-9999px;top:0;z-index:100;background:#fff;color:var(--ink);padding:8px 12px}
+.skip:focus{left:8px;top:8px}
+
+/* Government of India strip */
+.gov{background:var(--ink);color:#e2e8f0;font-size:.8125rem}
+.gov .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:36px}
+.gov-l{display:flex;align-items:center;gap:10px}
+.gov-l img{height:22px;width:auto}
+.gov-l b{font-weight:600;color:#fff}
+.gov-l .sep{width:1px;height:14px;background:rgba(255,255,255,.3)}
+.gov-r{display:flex;align-items:center;gap:4px}
+.gov-r a,.gov-r button{color:#e2e8f0;background:none;border:0;padding:4px 8px;cursor:pointer;font-size:.8125rem}
+.gov-r a:hover,.gov-r button:hover{color:#fff;text-decoration:underline}
+.gov-r .div{width:1px;height:14px;background:rgba(255,255,255,.25);margin:0 4px}
+.fs button{padding:2px 6px;font-weight:600}
+.fs button[aria-pressed="true"]{background:rgba(255,255,255,.18);border-radius:3px;color:#fff}
+.lang button[aria-pressed="true"]{color:#fff;font-weight:700}
+
+/* Masthead */
+.mast{background:#fff;border-bottom:1px solid var(--line)}
+.mast .wrap{display:flex;align-items:center;gap:20px;height:84px}
+.mast-logos{display:flex;align-items:center;gap:20px;min-width:0}
+.mast-logos .mohfw{height:52px;width:auto}
+.mast-logos .rule{width:1px;height:46px;background:var(--line)}
+.oh{display:flex;align-items:center;gap:12px;color:var(--ink)}
+.oh:hover{text-decoration:none}
+.oh svg{width:46px;height:46px;flex:none}
+.oh b{display:block;font-weight:800;font-size:1.125rem;letter-spacing:.06em;line-height:1.1}
+.oh small{display:block;font-size:.8125rem;color:var(--ink-600);margin-top:2px}
+.mast-r{margin-left:auto;display:flex;align-items:center;gap:18px}
+.partners-top{display:flex;align-items:center;gap:14px;padding-right:18px;border-right:1px solid var(--line)}
+.partners-top img{height:46px;width:auto}
+.partners-top img.ncdc{height:42px}
+.user{display:flex;align-items:center;gap:10px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--rose);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.8125rem;flex:none}
+.user b{display:block;font-size:.875rem;color:var(--ink);line-height:1.25;white-space:nowrap}
+.user small{display:block;font-size:.8125rem;color:var(--ink-600);white-space:nowrap}
+.ibtn{width:40px;height:40px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink-600);display:grid;place-items:center;cursor:pointer;flex:none}
+.ibtn:hover{border-color:var(--ink-500);color:var(--ink)}
+.menu-btn{display:none}
+
+/* Main menu (solid rose) - non sticky */
+.nav{position:static;background:var(--rose)}
+.nav .wrap{display:flex;align-items:stretch}
+.tabs{display:flex;align-items:stretch;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;margin-left:-14px}
+.tabs::-webkit-scrollbar{display:none}
+.tabs a{display:inline-flex;align-items:center;gap:8px;height:50px;padding:0 14px;color:#fff;font-weight:500;font-size:.9375rem;white-space:nowrap}
+.tabs a:hover{background:rgba(0,0,0,.12);text-decoration:none}
+.tabs a[aria-current="page"]{background:var(--rose-deep);font-weight:700;box-shadow:inset 0 -3px 0 var(--peach)}
+.tabs .count{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#fff;color:var(--rose-deep);font-size:.75rem;font-weight:800;display:grid;place-items:center}
+.nav-search{display:flex;align-items:center;gap:8px;margin-left:12px;padding:0 0 0 16px;border:0;border-left:1px solid rgba(255,255,255,.3);background:none;color:#fff;font-size:.9375rem;cursor:pointer;white-space:nowrap}
+.nav-search:hover{text-decoration:underline}
+.tabs .m-only,.tabs .m-sub{display:none}
+/* A tab that opens a drop-down list (Surveillance) */
+.nav .wrap{position:relative}
+.tabs .dd{display:inline-flex;align-items:center;gap:6px;height:50px;padding:0 14px;border:0;background:none;color:#fff;font-weight:500;font-size:.9375rem;white-space:nowrap;cursor:pointer;flex:none}
+.tabs .dd svg.i{width:15px;height:15px;transform:rotate(90deg);transition:transform .15s}
+.tabs .dd[aria-expanded="true"] svg.i{transform:rotate(-90deg)}
+.tabs .dd:hover,.tabs .dd[aria-expanded="true"]{background:rgba(0,0,0,.12)}
+.tabs .dd[data-current]{background:var(--rose-deep);font-weight:700;box-shadow:inset 0 -3px 0 var(--peach)}
+.ddmenu{position:absolute;top:100%;left:0;z-index:40;min-width:236px;margin:0;padding:6px;list-style:none;background:#fff;border:1px solid var(--line);border-top:0;border-radius:0 0 6px 6px;box-shadow:0 16px 28px -14px rgba(31,42,68,.5)}
+.ddmenu[hidden]{display:none}
+.ddmenu a{display:flex;align-items:center;height:40px;padding:0 12px;border-radius:4px;color:var(--ink);font-size:.9375rem;font-weight:500;white-space:nowrap}
+.ddmenu a:hover{background:var(--rose-tint);text-decoration:none}
+.ddmenu a[aria-current="page"]{background:var(--rose-tint);color:var(--rose-deep);font-weight:700}
+
+/* Page band (solid peach) */
+.band{background:var(--peach);border-bottom:1px solid #f1d6c6}
+.band .wrap{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 32px;padding-top:18px;padding-bottom:24px}
+.crumb{display:flex;align-items:center;gap:6px;margin:0 0 10px;padding:0;list-style:none;font-size:.875rem;color:var(--ink-600)}
+.crumb svg.i{width:14px;height:14px}
+.crumb a{color:var(--ink-600)}
+.band h1{font-size:1.75rem;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.band h1 .hi{display:block;margin-top:4px;font-size:1rem;font-weight:500;color:var(--rose-deep);letter-spacing:0}
+.band p{margin:10px 0 0;max-width:640px;color:var(--ink-600);font-size:.9375rem}
+.band-r{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.stamp{display:inline-flex;align-items:center;gap:8px;font-size:.875rem;color:var(--ink-700)}
+.stamp svg.i{width:17px;height:17px;color:var(--rose-deep)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border:0;border-radius:6px;background:var(--rose-deep);color:#fff;font-weight:600;font-size:.9375rem;cursor:pointer}
+.btn:hover{background:#73344a;text-decoration:none}
+.btn svg.i{width:17px;height:17px}
+
+/* Partners + footer */
+.partners{background:#fff;border-top:1px solid var(--line);margin-top:48px}
+.partners .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:16px 44px;padding-top:20px;padding-bottom:20px}
+.partners span{font-size:.875rem;color:var(--ink-600)}
+.partners img{height:46px;width:auto}
+.partners img.sm{height:40px}
+/* Footer: dark government style matching login/portal across ALL pages */
+.foot-nav-line{height:4px;background:#802b48}
+.foot{background:#0f1b2d;color:#d5dbe6;border-top:none}
+.foot-main{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 32px;padding-top:10px;padding-bottom:10px}
+.foot-brand{display:flex;align-items:center;gap:10px}
+.foot-brand svg{width:24px;height:24px;flex:none}
+.foot-brand b{font-weight:800;font-size:.875rem;letter-spacing:.05em;color:#fff}
+.foot-brand small{font-size:.8125rem;color:#94a3b8;margin-left:8px}
+.foot nav{display:flex;flex-wrap:wrap;align-items:center;gap:0}
+.foot nav a{color:#fff;font-size:.8125rem;font-weight:500;padding:0 14px;border-left:1px solid rgba(255,255,255,.2);line-height:1.2}
+.foot nav a:first-child{border-left:0;padding-left:0}
+.foot nav a:last-child{padding-right:0}
+.foot nav a:hover{text-decoration:underline;text-underline-offset:3px}
+.foot-base{background:#070e18;font-size:.75rem;color:#94a3b8;padding:6px 0}
+.foot-base .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:2px 32px}
+.foot-base p{margin:0;line-height:1.5}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,8px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:6px;font-size:.9375rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:100;width:max-content;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* Shell responsive */
+@media (max-width:1279px){
+  .wrap{padding:0 22px}
+  .user .who{display:none}
+  .tabs a,.tabs .dd{padding:0 11px;font-size:.875rem}
+  .tabs{margin-left:-11px}
+}
+@media (max-width:1150px){
+  .tabs a,.tabs .dd{padding:0 8px;font-size:.875rem;gap:6px}
+  .tabs{margin-left:-8px}
+  .nav-search{margin-left:6px;padding-left:12px}
+}
+@media (max-width:1099px){ .partners-top{display:none} }
+@media (max-width:1023px){
+  .wrap{padding:0 16px}
+  .gov .hide-sm{display:none}
+  .mast .wrap{height:68px;gap:12px}
+  .mast-logos{gap:12px}
+  .mast-logos .mohfw{height:40px}
+  .mast-logos .rule{height:36px}
+  .oh svg{width:38px;height:38px}
+  .oh b{font-size:1rem}
+  .menu-btn{display:grid}
+  .nav{position:static}
+  .nav .wrap{display:block}
+  .tabs,.nav-search{display:none}
+  .nav.open .tabs{display:grid;grid-template-columns:1fr 1fr;margin:0;padding:6px 0 10px}
+  .nav.open .tabs a{height:46px;border-radius:4px}
+  .nav.open .tabs .m-only{display:inline-flex}
+  /* phone menu: "Surveillance" becomes a label, with its five parts listed under it */
+  .ddmenu{display:none}
+  .nav.open .tabs a:first-child{grid-column:1 / -1}
+  .nav.open .tabs .dd{grid-column:1 / -1;height:34px;margin-top:4px;padding:0 8px;font-size:.8125rem;font-weight:700;color:#fde7ee;cursor:default;background:none;box-shadow:none}
+  .nav.open .tabs .dd svg.i{display:none}
+  .nav.open .tabs .m-sub{display:inline-flex;background:rgba(0,0,0,.12)}
+  .nav.open .tabs .m-sub:last-of-type{grid-column:1 / -1;margin-bottom:6px}
+}
+@media (max-width:767px){
+  .mast-logos .mohfw,.mast-logos .rule,.oh small{display:none}
+  .user{display:none}
+  .band h1{font-size:1.5rem}
+  .partners .wrap{gap:14px 28px}
+  .partners img{height:38px}.partners img.sm{height:32px}
+}
+@media (max-width:479px){
+  .gov-l .en,.gov-l .sep,.gov .fs,.gov .fs-div{display:none}
+  .band-r{width:100%}
+  .btn{flex:1;justify-content:center}
+  .nav.open .tabs{grid-template-columns:1fr}
+}
+
+/* ===== Sign-in page variant (no menu, compact footer) ===== */
+.nav-line{height:6px;background:var(--rose)}
+.mast-link{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-size:.875rem;font-weight:600;white-space:nowrap}
+.mast-link:hover{border-color:var(--ink-500);text-decoration:none}
+.mast-link svg.i{width:16px;height:16px}
+.login-page .wrap{max-width:none}
+.login-page .partners-top{border-right:0;padding-right:0}
+@media (max-width:767px){
+  .foot-main{flex-direction:column;align-items:flex-start;padding-top:12px;padding-bottom:12px}
+  .foot nav{gap:6px 18px}
+  .foot nav a{border-left:0;padding:2px 0}
+  .foot-brand small{display:none}
+}
+
+/* ===== Public page variant (public menu, Sign in button in the masthead) ===== */
+.mast-signin{white-space:nowrap}
+.btn.alt{border:1px solid #cfc6c0;background:#fff;color:var(--ink)}
+.btn.alt:hover{border-color:var(--ink-500);background:#faf7f5}
+@media (max-width:479px){ .mast-signin{flex:none;height:38px;padding:0 12px;font-size:.875rem} }
+
+/* ===== Shared type and control sizes (one scale for the whole portal) =====
+   Text: 12 / 13 / 14 / 15 / 16 / 18 / 24 / 28 / 32 px.  Controls: 42px (forms, main buttons), 34px (compact buttons). */
+.band h1{font-size:1.75rem}

@@ -1,0 +1,985 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Icon } from "../lib/icons.jsx";
+import { ShellTop, ShellBottom } from "../shell/Shell.jsx";
+import { useToast } from "../shell/ToastContext.jsx";
+import { getSession } from "../lib/session.js";
+import { apiAuthGet, apiAuthPost } from "../lib/api.js";
+
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const fmtDate = (iso) => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+  return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`;
+};
+
+const fmtCaptured = (iso) => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = MON[d.getMonth()];
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${dd} ${mm} ${yyyy}, ${hh}:${min}`;
+};
+
+const initials = (name) =>
+  String(name || "")
+    .split(/\s+/)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+// Allowed verification states matching prototype dropdown
+const ALLOWED_VERIFICATION_STATES = [
+  { value: "UNDER_REVIEW", label: "Under Review" },
+  { value: "VERIFIED", label: "Verified" },
+  { value: "RETURNED", label: "Returned for Correction" },
+  { value: "ESCALATED", label: "Escalated" },
+  { value: "CLOSED", label: "Closed" },
+];
+
+const stateSlug = (status) => {
+  const s = String(status || "").toLowerCase();
+  if (s === "under_review" || s === "under review") return "under-review";
+  if (s === "returned" || s === "returned for correction") return "returned-for-correction";
+  return s;
+};
+
+const formatStatusLabel = (status) => {
+  const s = String(status || "").toUpperCase();
+  if (s === "UNDER_REVIEW") return "UNDER REVIEW";
+  if (s === "RETURNED") return "RETURNED FOR CORRECTION";
+  return s;
+};
+
+// Pill styles matching the prototype screenshot
+const PILL_STYLES = {
+  submitted: {
+    background: "#EEE9F5",
+    color: "#5B4B7A",
+    border: "1.5px solid #a855f7",
+  },
+  "under-review": {
+    background: "#DBEAFE",
+    color: "#1E40AF",
+    border: "1.5px solid #3b82f6",
+  },
+  verified: {
+    background: "#E7F1EB",
+    color: "#4E7A61",
+    border: "1.5px solid #22c55e",
+  },
+  "returned-for-correction": {
+    background: "#FEF6EC",
+    color: "#B4530C",
+    border: "1.5px solid #f97316",
+  },
+  escalated: {
+    background: "#FED7AA",
+    color: "#9A3412",
+    border: "1.5px solid #ea580c",
+  },
+  closed: {
+    background: "#E5E7EB",
+    color: "#374151",
+    border: "1.5px solid #94a3b8",
+  },
+};
+
+// General tag for registrations & alerts
+const STATUS_LABEL = {
+  PENDING: "Awaiting approval",
+  ACTIVE: "Active",
+  SUSPENDED: "Suspended",
+  REJECTED: "Rejected",
+  INACTIVE: "Inactive",
+  OPEN: "Open Alert",
+  ESCALATED: "Escalated to District",
+  CLOSED: "Resolved & Closed",
+};
+
+const TAGS = {
+  "Awaiting approval": ["#fdeedd", "#b4530c"],
+  Active: ["#e7f1eb", "#15803d"],
+  Suspended: ["#eceff3", "#475569"],
+  Rejected: ["#fee2e2", "#b91c1c"],
+  Inactive: ["#eceff3", "#475569"],
+  "Open Alert": ["#fee2e2", "#b91c1c"],
+  "Escalated to District": ["#e0e7ff", "#4338ca"],
+  "Resolved & Closed": ["#e7f1eb", "#15803d"],
+};
+
+function Tag({ status }) {
+  const label = STATUS_LABEL[status] || status;
+  const c = TAGS[label] || ["#eceff3", "#475569"];
+  return (
+    <span className="atag" style={{ "--bg": c[0], "--fg": c[1] }}>
+      {label}
+    </span>
+  );
+}
+
+export default function SupervisorApprovals() {
+  const toast = useToast();
+  const navigate = useNavigate();
+  const sess = getSession();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const querySeg = searchParams.get("seg");
+  const initialSeg = querySeg && ["regs", "alerts", "verify"].includes(querySeg) ? querySeg : "regs";
+
+  const [regs, setRegs] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [verifs, setVerifs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [seg, setSegState] = useState(initialSeg);
+  const [busyId, setBusyId] = useState(null);
+  const [busyAlertId, setBusyAlertId] = useState(null);
+  const [busyVerifId, setBusyVerifId] = useState(null);
+
+  useEffect(() => {
+    const s = searchParams.get("seg");
+    if (s && ["regs", "alerts", "verify"].includes(s)) {
+      setSegState(s);
+    }
+  }, [searchParams]);
+
+  const setSeg = (newSeg) => {
+    setSegState(newSeg);
+    setSearchParams({ seg: newSeg });
+  };
+
+  const loadAll = () => {
+    setLoading(true);
+    Promise.all([
+      apiAuthGet("/api/supervisors/me/registrations").catch((e) => {
+        if (e.status === 401) navigate("/");
+        return [];
+      }),
+      apiAuthGet("/api/supervisors/me/alerts").catch((e) => {
+        if (e.status === 401) navigate("/");
+        return [];
+      }),
+      apiAuthGet("/api/supervisors/me/verifications").catch((e) => {
+        if (e.status === 401) navigate("/");
+        return [];
+      }),
+    ])
+      .then(([regRows, alertRows, verifRows]) => {
+        setRegs(regRows || []);
+        setAlerts(alertRows || []);
+        setVerifs(verifRows || []);
+      })
+      .catch((e) => toast(e.message || "Failed to load approval queues"))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadAll();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Actions for volunteer registrations
+  const act = async (vid, action) => {
+    setBusyId(vid);
+    try {
+      const res = await apiAuthPost(`/api/supervisors/me/registrations/${vid}/action`, { action });
+      setRegs((rs) => rs.map((r) => (r.volunteer_id === vid ? { ...r, status: res.status } : r)));
+      toast(res.message);
+    } catch (e) {
+      if (e.status === 401) navigate("/");
+      else toast(e.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  // Actions for alert escalations
+  const actAlert = async (aid, action) => {
+    setBusyAlertId(aid);
+    try {
+      const res = await apiAuthPost(`/api/supervisors/me/alerts/${aid}/action`, { action });
+      setAlerts((as) =>
+        as.map((a) => (a.alert_id === aid ? { ...a, closure_status: res.closure_status } : a))
+      );
+      toast(res.message);
+    } catch (e) {
+      if (e.status === 401) navigate("/");
+      else toast(e.message);
+    } finally {
+      setBusyAlertId(null);
+    }
+  };
+
+  // State change handler for report verifications with client-side & server-side validation
+  const handleStateChange = async (record, nextState) => {
+    // 1. Client-side validation: must select valid option
+    if (!nextState) return;
+
+    // 2. Client-side validation: prevent re-selecting identical state
+    if (nextState === record.verification_status) {
+      toast(`Record is already in '${formatStatusLabel(record.verification_status)}' state.`);
+      return;
+    }
+
+    const validOption = ALLOWED_VERIFICATION_STATES.find((s) => s.value === nextState);
+    if (!validOption) {
+      toast("Invalid verification status chosen.");
+      return;
+    }
+
+    const key = `${record.record_type}-${record.record_id}`;
+    setBusyVerifId(key);
+
+    // Optimistic UI update
+    const prevVerifs = [...verifs];
+    setVerifs((vs) =>
+      vs.map((v) =>
+        v.record_type === record.record_type && v.record_id === record.record_id
+          ? { ...v, verification_status: nextState }
+          : v
+      )
+    );
+
+    try {
+      const res = await apiAuthPost(
+        `/api/supervisors/me/verifications/${record.record_type}/${record.record_id}/action`,
+        { action: nextState }
+      );
+
+      // Confirm with server response
+      setVerifs((vs) =>
+        vs.map((v) =>
+          v.record_type === record.record_type && v.record_id === record.record_id
+            ? { ...v, verification_status: res.verification_status }
+            : v
+        )
+      );
+      toast(res.message || `Record status changed to ${validOption.label}.`);
+    } catch (err) {
+      // Rollback on server error / validation failure
+      setVerifs(prevVerifs);
+      if (err.status === 401) navigate("/");
+      else toast(err.message || "Failed to update record state.");
+    } finally {
+      setBusyVerifId(null);
+    }
+  };
+
+  const cntRegs = regs.filter((r) => r.status === "PENDING").length;
+  const cntAlerts = alerts.filter((a) => a.closure_status === "OPEN").length;
+  // Dynamic pending count matching screenshot (SUBMITTED + UNDER_REVIEW)
+  const cntVerify = verifs.filter((v) =>
+    ["SUBMITTED", "UNDER_REVIEW"].includes(v.verification_status)
+  ).length;
+
+  const dept = sess.cohvType || sess.department || "Public Health";
+  const designation = sess.title || "Assistant Program Manager (APM)";
+  const block = sess.block || "Amrabad";
+  const district = sess.district || "Nagarkurnool";
+  const state = sess.state || "Telangana";
+
+  return (
+    <>
+      <ShellTop mode="supervisor" active="sup-approvals" />
+      <main id="main">
+        {/* Top security yellow ribbon matching screenshot */}
+        <div
+          style={{
+            background: "#fef08a",
+            borderTop: "1px solid #fde047",
+            borderBottom: "1px solid #fde047",
+            padding: "8px 16px",
+            fontSize: "0.82rem",
+            color: "#713f12",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            fontWeight: "500",
+          }}
+        >
+          <span aria-hidden="true">🔒</span>
+          <span>
+            <b>COHV Supervisor:</b> {dept} · {designation} — {block} · {district} · {state}
+          </span>
+        </div>
+
+        <section className="band" style={{ paddingTop: "14px", paddingBottom: "16px" }}>
+          <div className="wrap band-slim">
+            <div className="band-top">
+              <ol className="crumb" aria-label="Breadcrumb">
+                <li>
+                  <Link to="/supervisor-dashboard" aria-label="Dashboard">
+                    <Icon name="home" />
+                  </Link>
+                </li>
+                <li aria-hidden="true">
+                  <Icon name="chev" />
+                </li>
+                <li aria-current="page">Approvals</li>
+              </ol>
+              <span className="stamp">
+                <Icon name="clock" />
+                Live data
+              </span>
+            </div>
+            <div className="band-main">
+              <h1 style={{ margin: "4px 0 0" }}>
+                Approvals <span className="hi">अनुमोदन</span>
+              </h1>
+            </div>
+          </div>
+        </section>
+
+        <div className="wrap content" style={{ paddingTop: "16px" }}>
+          {/* Segment pill buttons matching screenshot */}
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              margin: "0 0 20px",
+              flexWrap: "wrap",
+            }}
+            role="tablist"
+            aria-label="Approval queues"
+          >
+            <button
+              type="button"
+              aria-pressed={seg === "regs"}
+              onClick={() => setSeg("regs")}
+              style={{
+                height: "40px",
+                padding: "0 18px",
+                borderRadius: "999px",
+                border: seg === "regs" ? "1px solid #a04d68" : "1px solid #e2e8f0",
+                background: seg === "regs" ? "#a04d68" : "#ffffff",
+                color: seg === "regs" ? "#ffffff" : "#1e293b",
+                fontSize: "0.82rem",
+                fontWeight: "700",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <Icon name="users" />
+              Volunteer registrations
+              <span
+                style={{
+                  minWidth: "20px",
+                  height: "20px",
+                  padding: "0 6px",
+                  borderRadius: "999px",
+                  background: seg === "regs" ? "rgba(255,255,255,0.28)" : "#f1f5f9",
+                  color: seg === "regs" ? "#ffffff" : "#475569",
+                  fontSize: "0.72rem",
+                  fontWeight: "800",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {cntRegs}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              aria-pressed={seg === "alerts"}
+              onClick={() => setSeg("alerts")}
+              style={{
+                height: "40px",
+                padding: "0 18px",
+                borderRadius: "999px",
+                border: seg === "alerts" ? "1px solid #a04d68" : "1px solid #e2e8f0",
+                background: seg === "alerts" ? "#a04d68" : "#ffffff",
+                color: seg === "alerts" ? "#ffffff" : "#1e293b",
+                fontSize: "0.82rem",
+                fontWeight: "700",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <Icon name="siren" />
+              Alert escalations
+              <span
+                style={{
+                  minWidth: "20px",
+                  height: "20px",
+                  padding: "0 6px",
+                  borderRadius: "999px",
+                  background: seg === "alerts" ? "rgba(255,255,255,0.28)" : "#f1f5f9",
+                  color: seg === "alerts" ? "#ffffff" : "#475569",
+                  fontSize: "0.72rem",
+                  fontWeight: "800",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {cntAlerts}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              aria-pressed={seg === "verify"}
+              onClick={() => setSeg("verify")}
+              style={{
+                height: "40px",
+                padding: "0 18px",
+                borderRadius: "999px",
+                border: seg === "verify" ? "1px solid #a04d68" : "1px solid #e2e8f0",
+                background: seg === "verify" ? "#a04d68" : "#ffffff",
+                color: seg === "verify" ? "#ffffff" : "#1e293b",
+                fontSize: "0.82rem",
+                fontWeight: "700",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <Icon name="shield-check" />
+              Report verification
+              <span
+                style={{
+                  minWidth: "20px",
+                  height: "20px",
+                  padding: "0 6px",
+                  borderRadius: "999px",
+                  background: seg === "verify" ? "rgba(255,255,255,0.28)" : "#f1f5f9",
+                  color: seg === "verify" ? "#ffffff" : "#475569",
+                  fontSize: "0.72rem",
+                  fontWeight: "800",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {cntVerify}
+              </span>
+            </button>
+          </div>
+
+          {/* 1. Volunteer registrations queue */}
+          <section
+            className="card"
+            style={{
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
+              borderRadius: "16px",
+              padding: "20px 24px",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
+              marginBottom: "32px",
+            }}
+            aria-label="Volunteer registrations"
+            hidden={seg !== "regs"}
+          >
+            <div style={{ marginBottom: "16px" }}>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "800", color: "#0f172a", margin: "0" }}>
+                COHV registration approval &amp; account status
+              </h2>
+            </div>
+            <div style={{ overflowX: "auto" }}>
+              <table className="tbl appr-tbl" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc" }}>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Volunteer</th>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Village</th>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Registered</th>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Status</th>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="empty" style={{ textAlign: "center", padding: "28px" }}>
+                        Loading…
+                      </td>
+                    </tr>
+                  ) : regs.length ? (
+                    regs.map((a) => (
+                      <tr key={a.volunteer_id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "12px 14px" }}>
+                          <span className="who">
+                            <span className="who-i">{initials(a.volunteer_name)}</span>
+                            <span>
+                              <b>{a.volunteer_name}</b>
+                              <small className="rid">{a.volunteer_code}</small>
+                            </span>
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 14px" }}>{a.village_name || "—"}</td>
+                        <td style={{ padding: "12px 14px" }}>{fmtDate(a.created_at)}</td>
+                        <td style={{ padding: "12px 14px" }}>
+                          <Tag status={a.status} />
+                        </td>
+                        <td style={{ padding: "12px 14px" }}>
+                          <span className="acts">
+                            {a.status === "PENDING" && (
+                              <>
+                                <button
+                                  className="abtn pri"
+                                  disabled={busyId === a.volunteer_id}
+                                  onClick={() => act(a.volunteer_id, "approve")}
+                                >
+                                  Approve &amp; activate
+                                </button>
+                                <button
+                                  className="abtn"
+                                  disabled={busyId === a.volunteer_id}
+                                  onClick={() => act(a.volunteer_id, "reject")}
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                            {a.status === "ACTIVE" && (
+                              <>
+                                <button
+                                  className="abtn"
+                                  disabled={busyId === a.volunteer_id}
+                                  onClick={() => act(a.volunteer_id, "deactivate")}
+                                >
+                                  Deactivate
+                                </button>
+                                <button
+                                  className="abtn"
+                                  disabled={busyId === a.volunteer_id}
+                                  onClick={() => act(a.volunteer_id, "suspend")}
+                                >
+                                  Suspend
+                                </button>
+                              </>
+                            )}
+                            {["SUSPENDED", "REJECTED", "INACTIVE"].includes(a.status) && (
+                              <button
+                                className="abtn"
+                                disabled={busyId === a.volunteer_id}
+                                onClick={() => act(a.volunteer_id, "reinstate")}
+                              >
+                                Reinstate
+                              </button>
+                            )}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="empty" style={{ textAlign: "center", padding: "28px" }}>
+                        No volunteers in your team yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* 2. Alert escalations queue */}
+          <section
+            className="card"
+            style={{
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
+              borderRadius: "16px",
+              padding: "20px 24px",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
+              marginBottom: "32px",
+            }}
+            aria-label="Alert escalations"
+            hidden={seg !== "alerts"}
+          >
+            <div style={{ marginBottom: "16px" }}>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "800", color: "#0f172a", margin: "0" }}>
+                Alerts received from COHVs
+              </h2>
+            </div>
+            <div style={{ overflowX: "auto" }}>
+              <table className="tbl appr-tbl" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc" }}>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Alert &amp; Volunteer</th>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Location</th>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Alert Date</th>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Observation / Action Taken</th>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Status</th>
+                    <th style={{ padding: "10px 14px", fontSize: "0.72rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="empty" style={{ textAlign: "center", padding: "28px" }}>
+                        Loading alerts…
+                      </td>
+                    </tr>
+                  ) : alerts.length ? (
+                    alerts.map((al) => (
+                      <tr key={al.alert_id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "12px 14px" }}>
+                          <span className="who">
+                            <span className="who-i" style={{ background: "#991b1b" }}>
+                              {initials(al.volunteer_name || "AL")}
+                            </span>
+                            <span>
+                              <b>{al.alert_code}</b>
+                              <small className="rid">
+                                By {al.volunteer_name} ({al.volunteer_code || "COHV"})
+                              </small>
+                            </span>
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 14px" }}>
+                          <b>{al.village_name || "—"}</b>
+                          <small className="rid" style={{ display: "block" }}>
+                            {al.block_name || sess.block || ""}, {al.district_name || sess.district || ""}
+                          </small>
+                        </td>
+                        <td style={{ padding: "12px 14px" }}>{fmtDate(al.alert_date || al.created_at)}</td>
+                        <td style={{ padding: "12px 14px", maxWidth: "260px" }}>
+                          <div style={{ fontWeight: "600", color: "var(--ink)" }}>
+                            {al.description || "Unusual symptom cluster reported"}
+                          </div>
+                          {al.action_taken && (
+                            <small className="rid" style={{ color: "var(--ink-500)", display: "block", marginTop: "2px" }}>
+                              Action: {al.action_taken}
+                            </small>
+                          )}
+                        </td>
+                        <td style={{ padding: "12px 14px" }}>
+                          <Tag status={al.closure_status} />
+                        </td>
+                        <td style={{ padding: "12px 14px" }}>
+                          <span className="acts">
+                            {al.closure_status === "OPEN" ? (
+                              <>
+                                <button
+                                  className="abtn pri"
+                                  disabled={busyAlertId === al.alert_id}
+                                  onClick={() => actAlert(al.alert_id, "resolve")}
+                                  title="Mark alert as resolved & close"
+                                >
+                                  Resolve &amp; Close
+                                </button>
+                                <button
+                                  className="abtn"
+                                  disabled={busyAlertId === al.alert_id}
+                                  onClick={() => actAlert(al.alert_id, "escalate")}
+                                  title="Escalate alert to District Health Officer"
+                                >
+                                  Escalate
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                className="abtn"
+                                disabled={busyAlertId === al.alert_id}
+                                onClick={() => actAlert(al.alert_id, "reopen")}
+                              >
+                                Reopen
+                              </button>
+                            )}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="empty" style={{ textAlign: "center", padding: "28px" }}>
+                        No active alerts requiring escalation.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* 3. Field report verification queue - matching screenshot layout & styles */}
+          <section
+            className="card"
+            style={{
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
+              borderRadius: "16px",
+              padding: "20px 24px",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
+              marginBottom: "32px",
+            }}
+            aria-label="Report verification"
+            hidden={seg !== "verify"}
+          >
+            <div style={{ marginBottom: "16px" }}>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "800", color: "#0f172a", margin: "0" }}>
+                Report verification
+              </h2>
+            </div>
+            <div style={{ overflowX: "auto" }}>
+              <table
+                className="tbl"
+                style={{
+                  width: "100%",
+                  borderCollapse: "separate",
+                  borderSpacing: "0",
+                  fontSize: "0.83rem",
+                }}
+              >
+                <thead>
+                  <tr style={{ background: "#f8fafc" }}>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "10px 14px",
+                        fontSize: "0.7rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                        borderRadius: "8px 0 0 0",
+                      }}
+                    >
+                      RECORD
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "10px 14px",
+                        fontSize: "0.7rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                      }}
+                    >
+                      VOLUNTEER
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "10px 14px",
+                        fontSize: "0.7rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                      }}
+                    >
+                      TYPE
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "10px 14px",
+                        fontSize: "0.7rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                      }}
+                    >
+                      VILLAGE
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "10px 14px",
+                        fontSize: "0.7rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                      }}
+                    >
+                      CAPTURED
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "10px 14px",
+                        fontSize: "0.7rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                      }}
+                    >
+                      VERIFICATION
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "10px 14px",
+                        fontSize: "0.7rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#64748b",
+                        fontWeight: "700",
+                        borderBottom: "1px solid #e2e8f0",
+                        borderRadius: "0 8px 0 0",
+                      }}
+                    >
+                      SET STATE
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={7} className="empty" style={{ textAlign: "center", padding: "32px", color: "#64748b" }}>
+                        Loading verification queue…
+                      </td>
+                    </tr>
+                  ) : verifs.length ? (
+                    verifs.map((v) => {
+                      const vKey = `${v.record_type}-${v.record_id}`;
+                      const slug = stateSlug(v.verification_status);
+                      const pillStyle = PILL_STYLES[slug] || PILL_STYLES.submitted;
+                      const isBusy = busyVerifId === vKey;
+
+                      return (
+                        <tr
+                          key={vKey}
+                          style={{
+                            borderBottom: "1px solid #f1f5f9",
+                            background: isBusy ? "#f8fafc" : "transparent",
+                            transition: "background 0.2s",
+                          }}
+                        >
+                          {/* RECORD */}
+                          <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
+                            <span
+                              style={{
+                                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                                fontSize: "0.78rem",
+                                color: "#64748b",
+                                fontWeight: "600",
+                                letterSpacing: "0.03em",
+                              }}
+                            >
+                              {v.record_code}
+                            </span>
+                          </td>
+
+                          {/* VOLUNTEER */}
+                          <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
+                            <span style={{ fontWeight: "700", color: "#0f172a", fontSize: "0.85rem" }}>
+                              {v.volunteer_name || "—"}
+                            </span>
+                          </td>
+
+                          {/* TYPE */}
+                          <td style={{ padding: "12px 14px", verticalAlign: "middle", color: "#334155", fontSize: "0.83rem" }}>
+                            {v.type_label}
+                          </td>
+
+                          {/* VILLAGE */}
+                          <td style={{ padding: "12px 14px", verticalAlign: "middle", color: "#334155", fontSize: "0.83rem" }}>
+                            {v.village_name || "—"}
+                          </td>
+
+                          {/* CAPTURED */}
+                          <td style={{ padding: "12px 14px", verticalAlign: "middle", color: "#475569", fontSize: "0.82rem", whiteSpace: "nowrap" }}>
+                            {fmtCaptured(v.captured_at || v.created_at)}
+                          </td>
+
+                          {/* VERIFICATION PILL */}
+                          <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                padding: "2.5px 12px",
+                                borderRadius: "999px",
+                                fontSize: "0.68rem",
+                                fontWeight: "700",
+                                letterSpacing: "0.03em",
+                                whiteSpace: "nowrap",
+                                textTransform: "uppercase",
+                                ...pillStyle,
+                              }}
+                            >
+                              {formatStatusLabel(v.verification_status)}
+                            </span>
+                          </td>
+
+                          {/* SET STATE DROPDOWN */}
+                          <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
+                            <div style={{ position: "relative", display: "inline-block" }}>
+                              <select
+                                className="select"
+                                value=""
+                                disabled={isBusy}
+                                onChange={(e) => handleStateChange(v, e.target.value)}
+                                aria-label={`Change state for ${v.record_code}`}
+                                style={{
+                                  height: "34px",
+                                  padding: "0 28px 0 12px",
+                                  border: "1.5px solid #0f172a",
+                                  borderRadius: "8px",
+                                  fontSize: "0.8125rem",
+                                  fontWeight: "500",
+                                  background: "#ffffff",
+                                  color: "#0f172a",
+                                  cursor: isBusy ? "not-allowed" : "pointer",
+                                  minWidth: "155px",
+                                  appearance: "auto",
+                                  opacity: isBusy ? 0.6 : 1,
+                                }}
+                              >
+                                <option value="" disabled>
+                                  {isBusy ? "Updating…" : "Change to…"}
+                                </option>
+                                {ALLOWED_VERIFICATION_STATES.filter(
+                                  (s) => s.value !== v.verification_status
+                                ).map((s) => (
+                                  <option key={s.value} value={s.value}>
+                                    {s.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="empty" style={{ textAlign: "center", padding: "32px", color: "#64748b" }}>
+                        No reports in your department this period.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+      <ShellBottom mode="supervisor" />
+    </>
+  );
+}

@@ -1,0 +1,23 @@
+# OneHealth Volunteer API — Python dependencies
+# Python 3.10+  (install with:  pip install -r requirements.txt)
+
+# --- Web framework + ASGI server ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0          # dev / single-process server
+gunicorn==23.0.0                   # production process manager (Linux) — runs uvicorn workers
+
+# --- Data validation / settings ---
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# --- Database (PostgreSQL) ---
+sqlalchemy==2.0.36
+psycopg[binary]==3.2.3             # driver for "postgresql+psycopg"
+alembic==1.14.0                    # database migrations
+
+# --- Auth / uploads ---
+PyJWT==2.10.1                      # JWT access tokens (HS256)
+python-multipart==0.0.20           # required by FastAPI for file uploads (UploadFile)
+
+# Note: password/PIN hashing uses hashlib.scrypt from the standard library,
+# so no passlib/bcrypt dependency is needed.

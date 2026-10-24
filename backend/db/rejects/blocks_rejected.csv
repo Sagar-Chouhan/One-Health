@@ -1,0 +1,232 @@
+dump_id,block_lgd_code,block_name,state_lgd_code,district_lgd_code,is_active,reason
+797,2494,Gobardhana,18,616,True,"LGD code 2494 also used by 'Gobardhana' (district 280), which fits that code"
+945,2550,Bilasipara,18,294,True,"LGD code 2550 also used by 'Bilasipara' (district 285), which fits that code"
+946,2552,Chapar Salkocha,18,294,True,"LGD code 2552 also used by 'Chapar Salkocha' (district 285), which fits that code"
+948,2553,Debitola,18,294,True,"LGD code 2553 also used by 'Debitola' (district 285), which fits that code"
+951,2556,Golakganj,18,294,True,"LGD code 2556 also used by 'Golakganj' (district 285), which fits that code"
+957,2558,Mahamaya,18,294,True,"LGD code 2558 also used by 'Mahamaya' (district 285), which fits that code"
+959,2561,Rupshi,18,294,True,"LGD code 2561 also used by 'Rupshi' (district 285), which fits that code"
+861,2636,Hatidhura,18,285,True,"LGD code 2636 also used by 'Hatidhura' (district 294), which fits that code"
+7354,3437,Devendranagar,23,420,True,"LGD code 3437 also used by 'Kendrapada' (district 360), which fits that code"
+7355,3509,Nagda,23,435,True,"LGD code 3509 also used by 'Suliapada' (district 365), which fits that code"
+7356,3583,Shyampur,23,427,True,"LGD code 3583 also used by 'Lathikata' (district 373), which fits that code"
+845,6553,Khoirabari,18,283,True,"LGD code 6553 also used by 'Khoirabari' (district 617), which fits that code"
+7357,6997,Sanawad,23,414,True,"LGD code 6997 also used by 'Nutnoosa' (district 8), which fits that code"
+6525,6998,Badagaon,23,434,True,"LGD code 6998 also used by 'Hayhama' (district 8), which fits that code"
+7286,7286,Markand,2,15,True,"LGD code 7286 also used by 'Kaloor Thimmandoddi' (district 695), which fits that code"
+7287,7287,Samot,2,16,True,"LGD code 7287 also used by 'Adavidevulapalli' (district 514), which fits that code"
+7288,7288,Killad,2,16,True,"LGD code 7288 also used by 'Konda Mallepally' (district 514), which fits that code"
+7289,7289,Pukhri,2,16,True,"LGD code 7289 also used by 'Neredugommu' (district 514), which fits that code"
+7290,7290,Chudi,2,16,True,"LGD code 7290 also used by 'Nagaram' (district 696), which fits that code"
+7291,7291,Kihar,2,16,True,"LGD code 7291 also used by 'Maddirala' (district 696), which fits that code"
+7292,7292,Teesa,2,16,True,"LGD code 7292 also used by 'Palakeedu' (district 696), which fits that code"
+7293,7293,Tauni Devi,2,17,True,"LGD code 7293 also used by 'Chinthalapalem Mallareddygudem' (district 696), which fits that code"
+7294,7294,Badsar,2,17,True,"LGD code 7294 also used by 'Motakonduru' (district 697), which fits that code"
+7295,7295,Nadaun,2,17,True,"LGD code 7295 also used by 'Addaguduru' (district 697), which fits that code"
+7296,7296,Galod,2,17,True,"LGD code 7296 also used by 'Kotepally' (district 698), which fits that code"
+7297,7297,Thural,2,18,True,"LGD code 7297 also used by 'Kapra' (district 700), which fits that code"
+7298,7298,Kaza,2,21,True,"LGD code 7298 also used by 'Bachupally' (district 700), which fits that code"
+7299,7299,Gondhla,2,21,True,"LGD code 7299 also used by 'Abdullapurmet' (district 518), which fits that code"
+7300,7300,Kala,2,26,True,"LGD code 7300 also used by 'Gandipet' (district 518), which fits that code"
+7301,7301,Badshera,2,26,True,"LGD code 7301 also used by 'Nandigama' (district 518), which fits that code"
+7302,7302,Arki,2,25,True,"LGD code 7302 also used by 'Serilingampally' (district 518), which fits that code"
+7303,7303,Syri,2,25,True,"LGD code 7303 also used by 'Urkonda' (district 694), which fits that code"
+7304,7304,Dharampur,2,25,True,"LGD code 7304 also used by 'Vatpally' (district 691), which fits that code"
+7305,7305,Chandi,2,25,True,"LGD code 7305 also used by 'Balapur' (district 518), which fits that code"
+7306,7306,Sarahan,2,24,True,"LGD code 7306 also used by 'Jessami Td' (district 260), which fits that code"
+7307,7307,Sangdad,2,24,True,"LGD code 7307 also used by 'Jiribam C D Block' (district 713), which fits that code"
+7308,7308,Rajpura,2,24,True,"LGD code 7308 also used by 'Sahamphung Td Block' (district 717), which fits that code"
+7309,7309,Ghageda,2,24,True,"LGD code 7309 also used by 'Longmai' (district 714), which fits that code"
+7310,7310,Kumarsain,2,23,True,"LGD code 7310 also used by 'Moreh' (district 716), which fits that code"
+7311,7311,Nankhadi,2,23,True,"LGD code 7311 also used by 'Haochong' (district 714), which fits that code"
+7312,7312,Chidgaon,2,23,True,"LGD code 7312 also used by 'Kangvai' (district 254), which fits that code"
+7313,7313,Matiana,2,23,True,"LGD code 7313 also used by 'Suangdoh' (district 254), which fits that code"
+7314,7314,Tikkar,2,23,True,"LGD code 7314 also used by 'Mualnuam' (district 254), which fits that code"
+7315,7315,Nerwa,2,23,True,"LGD code 7315 also used by 'Lanva' (district 254), which fits that code"
+7316,7316,Sunni,2,23,True,"LGD code 7316 also used by 'Lamka South' (district 254), which fits that code"
+7317,7317,Bagsaid,2,22,True,"LGD code 7317 also used by 'Khangbarol' (district 253), which fits that code"
+7318,7318,Baldwara,2,22,True,"LGD code 7318 also used by 'Bungte Chiru' (district 712), which fits that code"
+7319,7319,Janjehli,2,22,True,"LGD code 7319 also used by 'Kangchup Geljang' (district 712), which fits that code"
+7320,7320,Ladbharol,2,22,True,"LGD code 7320 also used by 'Champhai' (district 712), which fits that code"
+7321,7321,Ratti,2,22,True,"LGD code 7321 also used by 'Lhungtin' (district 712), which fits that code"
+7322,7322,Rohanda,2,22,True,"LGD code 7322 also used by 'Island' (district 712), which fits that code"
+7323,7323,Sandhole,2,22,True,"LGD code 7323 also used by 'T Vaichong' (district 712), which fits that code"
+7324,7324,Jari,2,20,True,"LGD code 7324 also used by 'Willong' (district 257), which fits that code"
+7325,7325,Sangla,2,19,True,"LGD code 7325 also used by 'Song Song' (district 257), which fits that code"
+7326,7326,Gangath,2,18,True,"LGD code 7326 also used by 'Tipaimukh' (district 715), which fits that code"
+7327,7327,Jwalamukhi,2,18,True,"LGD code 7327 also used by 'Vangai Range' (district 715), which fits that code"
+7328,7328,Nagrota Suriyan,2,18,True,"LGD code 7328 also used by 'Phaibung Khullen' (district 257), which fits that code"
+7329,7329,Tyada,2,18,True,"LGD code 7329 also used by 'Mahabubnagar Urban' (district 512), which fits that code"
+7331,7331,Kanpur Nagar Urban,9,157,True,"LGD code 7331 also used by 'Siddipet Urban' (district 692), which fits that code"
+7332,7332,Urban Bareilly,9,130,True,"LGD code 7332 also used by 'Akkannapet' (district 692), which fits that code"
+7333,7333,Fatehpur Urban,9,142,True,"LGD code 7333 also used by 'Goniana' (district 28), which fits that code"
+7334,7334,Lucknow Urban,9,162,True,"LGD code 7334 also used by 'Damera' (district 686), which fits that code"
+7335,7335,Ayodhya Urban,9,140,True,"LGD code 7335 also used by 'Jilled Chowdergudem' (district 518), which fits that code"
+7336,7336,Jhansi Urban,9,153,True,"LGD code 7336 also used by 'Nirmal Rural' (district 680), which fits that code"
+7337,7337,Budaun - Urban,9,133,True,"LGD code 7337 also used by 'Shambu Kalan' (district 41), which fits that code"
+7338,7338,Agra Urban,9,118,True,"LGD code 7338 also used by 'Alwal' (district 700), which fits that code"
+7339,7339,Lalitpur Urban,9,161,True,"LGD code 7339 also used by 'Balanagar' (district 700), which fits that code"
+7343,7343,Rampur Urban Area DMH,9,176,True,"LGD code 7343 also used by 'Nadikuda' (district 686), which fits that code"
+7344,7344,Rampur Urban Area DFH,9,176,True,"LGD code 7344 also used by 'Kadapa' (district 504), which fits that code"
+7347,7347,Urban Rae Bareli,9,175,True,"LGD code 7347 also used by 'Boleng' (district 679), which fits that code"
+5927,4274,Daman,38,463,True,district 463 not in district_master
+5928,4275,Diu,38,464,True,district 464 not in district_master
+5926,4276,Dadra Nagar Haveli,38,465,True,district 465 not in district_master
+7424,909075,Jaitaran,8,4977,True,district 4977 not in district_master
+7425,909076,Jawaja,8,4977,True,district 4977 not in district_master
+7426,909077,Raipur,8,4977,True,district 4977 not in district_master
+7427,909078,Masooda,8,4977,True,district 4977 not in district_master
+4784,7458,Aau,8,4978,True,district 4978 not in district_master
+4786,722,Bap,8,4978,True,district 4978 not in district_master
+4787,6847,Bapini,8,4978,True,district 4978 not in district_master
+4792,6832,Dechu,8,4978,True,district 4978 not in district_master
+4794,7461,Ghantiyali,8,4978,True,district 4978 not in district_master
+4796,6846,Lohawat,8,4978,True,district 4978 not in district_master
+4801,728,Phalodi,8,4978,True,district 4978 not in district_master
+4820,741,Didwana,8,4981,True,district 4981 not in district_master
+4823,743,Kuchaman,8,4981,True,district 4981 not in district_master
+4824,744,Ladnu,8,4981,True,district 4981 not in district_master
+4825,745,Makrana,8,4981,True,district 4981 not in district_master
+4827,6859,Molasar,8,4981,True,district 4981 not in district_master
+4830,6854,Nawa,8,4981,True,district 4981 not in district_master
+4831,749,Parbatsar,8,4981,True,district 4981 not in district_master
+4605,603,Baltora,8,5002,True,district 5002 not in district_master
+4611,607,Dhorimanna,8,5002,True,district 5002 not in district_master
+4614,6839,Gira,8,5002,True,district 5002 not in district_master
+4615,6842,Gudhamalani,8,5002,True,district 5002 not in district_master
+4616,6825,Kalyanpur,8,5002,True,district 5002 not in district_master
+4617,7472,Panyla Kla,8,5002,True,district 5002 not in district_master
+4618,6830,Patodi,8,5002,True,district 5002 not in district_master
+4620,6833,Samdari,8,5002,True,district 5002 not in district_master
+4623,609,Sindhari,8,5002,True,district 5002 not in district_master
+4624,610,Siwana,8,5002,True,district 5002 not in district_master
+4573,577,Kishangarh Bas,8,5003,True,district 5003 not in district_master
+4574,578,Kotkasim,8,5003,True,district 5003 not in district_master
+4577,580,Mandawar,8,5003,True,district 5003 not in district_master
+4583,586,Tijara,8,5003,True,district 5003 not in district_master
+4895,7385,Jaisamand,8,5004,True,district 5004 not in district_master
+4897,7113,Jhallara,8,5004,True,district 5004 not in district_master
+4901,6620,Lasadiya,8,5004,True,district 5004 not in district_master
+4906,801,Salumbar,8,5004,True,district 5004 not in district_master
+4907,802,Sarada,8,5004,True,district 5004 not in district_master
+4909,6848,Semari,8,5004,True,district 5004 not in district_master
+1770,4080,Bhabhar,24,5005,True,district 5005 not in district_master
+1774,4084,Deodar,24,5005,True,district 5005 not in district_master
+1777,7119,Lakhani,24,5005,True,district 5005 not in district_master
+1779,7135,Suigam,24,5005,True,district 5005 not in district_master
+1780,4088,Tharad,24,5005,True,district 5005 not in district_master
+1782,4090,Vav,24,5005,True,district 5005 not in district_master
+7435,909079,Dharnidhar,24,5005,True,district 5005 not in district_master
+7436,909080,Rah,24,5005,True,district 5005 not in district_master
+4400,6487,Mahe,34,599,True,district 599 not in district_master
+3163,7042,Barsoo,37,6,True,district 6 not in district_master
+3164,7039,Bhimbat,37,6,True,district 6 not in district_master
+3165,67,Drass,37,6,True,district 6 not in district_master
+3166,6540,Gm Pora (Trespone),37,6,True,district 6 not in district_master
+3167,68,Kargil,37,6,True,district 6 not in district_master
+3168,7043,Karsha,37,6,True,district 6 not in district_master
+3169,7041,Lotsum,37,6,True,district 6 not in district_master
+3170,6541,Lungnak,37,6,True,district 6 not in district_master
+3171,7040,Pashkum,37,6,True,district 6 not in district_master
+3172,69,Sankoo,37,6,True,district 6 not in district_master
+3173,70,Shaker Chaktan,37,6,True,district 6 not in district_master
+3174,71,Shargol,37,6,True,district 6 not in district_master
+3175,7038,Soudh,37,6,True,district 6 not in district_master
+3176,72,Taisuru,37,6,True,district 6 not in district_master
+3177,73,Zansker,37,6,True,district 6 not in district_master
+4404,6491,Yanam,34,601,True,district 601 not in district_master
+7360,909011,Kolkata,19,768,True,"district 768 belongs to state 8 in LGD, not 19"
+7408,909059,Thiruvottiyur,33,769,True,district 769 not in district_master
+7409,909060,Manali,33,769,True,district 769 not in district_master
+7410,909061,Madhavaram,33,769,True,district 769 not in district_master
+7411,909062,Tondairpet,33,769,True,district 769 not in district_master
+7412,909063,Royapuram,33,769,True,district 769 not in district_master
+7413,909064,Thiru. Vi.ka,33,769,True,district 769 not in district_master
+7414,909065,Ambattur,33,769,True,district 769 not in district_master
+7415,909066,Anna Nagar,33,769,True,district 769 not in district_master
+7416,909067,Teynampet,33,769,True,district 769 not in district_master
+7417,909068,Kodambakkam,33,769,True,district 769 not in district_master
+7418,909069,Valasaravakkam,33,769,True,district 769 not in district_master
+7419,909070,Alandur,33,769,True,district 769 not in district_master
+7420,909071,Adyar,33,769,True,district 769 not in district_master
+7421,909072,Perungudi,33,769,True,district 769 not in district_master
+7422,909073,Sholinganallur,33,769,True,district 769 not in district_master
+7463,909085,Mumbai City,27,775,True,"district 775 belongs to state 8 in LGD, not 27"
+7464,909086,Mumbai Sub Urban,27,776,True,district 776 not in district_master
+3178,6543,Chuchot,37,9,True,district 9 not in district_master
+3179,98,Deskit,37,9,True,district 9 not in district_master
+3180,94,Durbuk,37,9,True,district 9 not in district_master
+3181,95,Khaltsi,37,9,True,district 9 not in district_master
+3182,96,Kharu,37,9,True,district 9 not in district_master
+3183,97,Leh,37,9,True,district 9 not in district_master
+3184,7045,Nimoo,37,9,True,district 9 not in district_master
+3185,99,Nyoma,37,9,True,district 9 not in district_master
+3186,6544,Panamic,37,9,True,district 9 not in district_master
+3187,7046,Rong,37,9,True,district 9 not in district_master
+3188,7047,Rupsho,37,9,True,district 9 not in district_master
+3189,6542,Saspol,37,9,True,district 9 not in district_master
+3190,7050,Singay Lalok Wanla,37,9,True,district 9 not in district_master
+3191,7049,Sukerbachan,37,9,True,district 9 not in district_master
+3192,7044,Thiksay,37,9,True,district 9 not in district_master
+3193,7048,Turtuk,37,9,True,district 9 not in district_master
+7348,909081,Urban City Sitapur,9,183,True,private code 909081 used by 2 rows
+7437,909081,Chikda,24,452,True,private code 909081 used by 2 rows
+7253,7700,Civil Lines,40,777,False,state 40 is not an LGD state code
+7254,7701,Kotwali,40,777,False,state 40 is not an LGD state code
+7255,7702,Karol Bagh,40,777,True,state 40 is not an LGD state code
+7256,7703,Gandhi Nagar,40,778,True,state 40 is not an LGD state code
+7257,7704,Preet Vihar,40,778,False,state 40 is not an LGD state code
+7258,7705,Mayur Vihar,40,778,False,state 40 is not an LGD state code
+7259,7706,Chanakya Puri,40,779,False,state 40 is not an LGD state code
+7260,7707,Delhi Cantonmen,40,779,True,state 40 is not an LGD state code
+7261,7708,Vasant Vihar,40,779,False,state 40 is not an LGD state code
+7262,7709,Alipur,40,780,False,state 40 is not an LGD state code
+7263,7710,Model Town,40,5008,True,state 40 is not an LGD state code
+7264,7711,Narela,40,780,False,state 40 is not an LGD state code
+7265,7712,Seelam Pur,40,781,False,state 40 is not an LGD state code
+7266,7713,Yamuna Vihar,40,781,True,state 40 is not an LGD state code
+7267,7714,Karawal Nagar,40,781,True,state 40 is not an LGD state code
+7268,7715,Saraswati Vihar,40,782,False,state 40 is not an LGD state code
+7269,7716,Rohini,40,782,True,state 40 is not an LGD state code
+7270,7717,Kanjhawala,40,782,False,state 40 is not an LGD state code
+7271,7718,Hauz Khas,40,784,False,state 40 is not an LGD state code
+7272,7719,Saket,40,784,False,state 40 is not an LGD state code
+7273,7720,Mehrauli,40,784,True,state 40 is not an LGD state code
+7274,7721,Najafgarh,40,786,True,state 40 is not an LGD state code
+7275,7722,Kapeshera,40,786,False,state 40 is not an LGD state code
+7276,7723,Dwarka,40,786,True,state 40 is not an LGD state code
+7277,7724,Patel Nagar,40,777,True,state 40 is not an LGD state code
+7278,7725,Rajouri Garden,40,787,True,state 40 is not an LGD state code
+7279,7726,Punjabi Bagh,40,787,False,state 40 is not an LGD state code
+7280,7727,Defence Colony,40,785,False,state 40 is not an LGD state code
+7281,7728,Kalkaji,40,785,True,state 40 is not an LGD state code
+7282,7729,Sarita Vihar,40,785,False,state 40 is not an LGD state code
+7283,7730,Shahdara,40,781,True,state 40 is not an LGD state code
+7284,7731,Seema Puri,40,783,False,state 40 is not an LGD state code
+7285,7732,Vivek Vihar,40,783,False,state 40 is not an LGD state code
+7438,7572,Jangpura,40,785,True,state 40 is not an LGD state code
+7439,7573,Badarpur,40,785,True,state 40 is not an LGD state code
+7440,7575,Sadar Bazar,40,5009,True,state 40 is not an LGD state code
+7441,7574,Chandni Chowk,40,5009,True,state 40 is not an LGD state code
+7442,7569,Burari,40,780,True,state 40 is not an LGD state code
+7443,7571,Adarsh Nagar,40,780,True,state 40 is not an LGD state code
+7444,7570,Badli,40,780,True,state 40 is not an LGD state code
+7445,7593,New Delhi,40,779,True,state 40 is not an LGD state code
+7446,7579,Shalimar bagh,40,5008,True,state 40 is not an LGD state code
+7447,7581,Matiala,40,786,True,state 40 is not an LGD state code
+7448,7580,Bijwasan,40,786,True,state 40 is not an LGD state code
+7449,7583,Mundka,40,5010,True,state 40 is not an LGD state code
+7450,7582,Bawana,40,5010,True,state 40 is not an LGD state code
+7451,7594,Kirari,40,782,True,state 40 is not an LGD state code
+7452,7595,Nangloi Jat,40,782,True,state 40 is not an LGD state code
+7453,7586,Vishwas nagar,40,778,True,state 40 is not an LGD state code
+7454,7585,Patparganj,40,778,True,state 40 is not an LGD state code
+7455,7589,Malviya Nagar,40,784,True,state 40 is not an LGD state code
+7456,7588,Deoli,40,784,True,state 40 is not an LGD state code
+7457,7591,Vikaspuri,40,787,True,state 40 is not an LGD state code
+7458,7590,Janakpuri,40,787,True,state 40 is not an LGD state code
+7459,909082,Sakur Basti,40,5008,True,state 40 is not an LGD state code
+7460,909083,Gokal Puri,40,781,True,state 40 is not an LGD state code
+7461,7587,Chhatarpur,40,784,True,state 40 is not an LGD state code
+7462,909084,Narela,40,5010,True,state 40 is not an LGD state code
+7361,101010,Test,31,4965,True,test row

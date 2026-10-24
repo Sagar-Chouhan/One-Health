@@ -1,0 +1,47 @@
+# Python virtual environments
+.venv/
+venv/
+venv_old/
+env/
+ENV/
+
+# Python cache & testing
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs & process files
+*.log
+nohup.out
+*.pid
+
+# Database & SQLite files
+*.db
+*.sqlite3
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Node / Frontend dependencies & build output
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Uploaded user files & media
+backend/uploads/*
+!backend/uploads/**/.gitkeep
+uploads/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

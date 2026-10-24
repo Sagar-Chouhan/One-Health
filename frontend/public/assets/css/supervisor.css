@@ -1,0 +1,94 @@
+/* COHV Supervisor dashboard — small additions on top of data-page.css + surveillance-page.css +
+   early-warning.css. Reuses the portal's own components (.sec-h, .kpis.six tiles, the .card.mcard
+   map with its .mside ranked list). This file only adds the map height, the stacked side-bar, the
+   legend dots, an 8-up KPI grid and the two quick-jump cards. */
+
+/* the map card uses the real map chrome from early-warning.css; just size the canvas */
+#sup-map{height:440px}
+
+/* side ranked list: a stacked bar of the six activities (like the Diseases side list) */
+#sup-mapcard .rank .bar{display:flex;gap:2px;height:12px;background:none;border-radius:0}
+#sup-mapcard .rank .bar i{flex:none;height:100%;min-width:0;border-radius:2px}
+#sup-mapcard .rank button:hover{border-color:var(--ink-500)}
+
+.lg-x{font-size:.8125rem;color:var(--ink-700)}
+.mapbox{position:relative}
+.mback{position:absolute;left:12px;top:12px;z-index:2;background:#fff}
+/* legend: circle-size dots + activity swatches */
+.lg-steps .szd{display:inline-block;border-radius:50%;opacity:.82;vertical-align:middle}
+.lg-steps li.sz{color:var(--ink-500)}
+#map-acts li{display:inline-flex;align-items:center;gap:7px;color:var(--ink-700)}
+#map-acts li i{width:12px;height:12px;border-radius:2px}
+.norep{display:inline-flex;align-items:center;gap:7px;color:var(--ink-700)}
+.norep i{width:14px;height:14px;border-radius:50%;border:1.4px dashed var(--ink-400)}
+
+/* At a Glance: five tiles; Performance: eight tiles — both use the same tile look as the six
+   key figures on Surveillance (block layout, inline icon, "i" tooltip, dark first tile). */
+.kpis.five{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.kpis.eight{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpis.five .kpi,.kpis.eight .kpi{position:relative;display:block;padding:13px 14px}
+.kpis.five .kpi .l,.kpis.eight .kpi .l{display:flex;align-items:center;gap:6px;padding-right:22px;font-size:.8125rem;color:var(--ink-600)}
+.kpis.five .kpi .l svg.i,.kpis.eight .kpi .l svg.i{width:16px;height:16px;color:var(--rose-deep)}
+.kpis.five .kpi.main .l,.kpis.eight .kpi.main .l{color:#cbd5e1}
+.kpis.five .kpi.main .l svg.i,.kpis.eight .kpi.main .l svg.i{color:#fff}
+.kpis.five .kpi .v,.kpis.eight .kpi .v{margin-top:6px;font-size:1.75rem}
+.kpis.five .kpi .delta{white-space:normal}
+.kpis.five .kpi:first-child .ktip{right:auto;left:6px}
+
+/* clickable At-a-Glance tiles that jump to the Approvals page */
+a.kpi-link{color:inherit;text-decoration:none;transition:border-color .15s,box-shadow .15s,transform .15s}
+a.kpi-link:hover{border-color:var(--rose-dark);box-shadow:0 10px 22px -16px rgba(31,42,68,.5);transform:translateY(-2px)}
+a.kpi-link .kinfo{cursor:help}
+.kpi-link .golnk{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:.8125rem;font-weight:700;color:var(--rose-deep)}
+.kpi-link .golnk svg.i{width:15px;height:15px;transition:transform .15s}
+.kpi-link:hover .golnk svg.i{transform:translateX(3px)}
+
+/* Approvals & Reports quick-jumps */
+.sv-jump{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sv-jcard{display:flex;align-items:center;gap:14px;padding:16px 18px;background:#fff;border:1px solid var(--line);border-radius:6px;color:inherit;transition:border-color .15s,box-shadow .15s,transform .15s}
+.sv-jcard:hover{text-decoration:none;border-color:var(--ink-500);box-shadow:0 10px 22px -16px rgba(31,42,68,.5);transform:translateY(-2px)}
+.sv-jico{flex:none;width:40px;height:40px;display:grid;place-items:center;color:var(--rose-deep)}
+.sv-jico svg.i{width:26px;height:26px}
+.sv-jb{flex:1;min-width:0}
+.sv-jb b{display:block;font-size:1rem;font-weight:700;color:var(--ink)}
+.sv-jb small{display:block;margin-top:2px;font-size:.8125rem;color:var(--ink-600);line-height:1.35}
+.sv-jcard .arr{flex:none;width:20px;height:20px;color:var(--rose-dark);transition:transform .15s}
+.sv-jcard:hover .arr{transform:translateX(3px)}
+
+@media (max-width:1099px){ .kpis.eight{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:767px){ .sv-jump{grid-template-columns:1fr} #sup-map{height:360px} }
+@media (max-width:519px){ .kpis.eight{grid-template-columns:1fr 1fr} }
+
+/* ---------------- Approvals page: three queues in our segmented control + .tbl tables ---------------- */
+.appr-seg{margin:0 0 16px;max-width:100%;flex-wrap:wrap}
+.appr-seg button{height:40px;display:inline-flex;align-items:center;gap:8px;padding:0 15px}
+.appr-seg button svg.i{width:16px;height:16px;color:var(--rose-deep)}
+.appr-seg button[aria-pressed="true"] svg.i{color:#fff}
+.appr-seg .cnt{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#f3ede9;color:var(--ink-700);font-size:.75rem;font-weight:800;display:inline-grid;place-items:center}
+.appr-seg button[aria-pressed="true"] .cnt{background:rgba(255,255,255,.2);color:#fff}
+.appr-pane{overflow:visible}
+.appr-pane .ch-head{border-bottom:1px solid var(--line-2)}
+.appr-tbl{min-width:640px}
+.appr-tbl td:first-child{min-width:0;font-weight:400}
+.appr-tbl td:nth-child(2){min-width:0}
+.appr-tbl .rid{font-size:.75rem;color:var(--ink-500)}
+.appr-tbl b{color:var(--ink)}
+
+/* who cell: initials square + name */
+.who{display:flex;align-items:center;gap:10px}
+.who-i{flex:none;width:32px;height:32px;border-radius:6px;background:var(--ink);color:#fff;font-size:.72rem;font-weight:800;display:grid;place-items:center}
+.who .rid{display:block;margin-top:1px}
+
+/* compact tag (square corners, our palette — not a pill chip) */
+.atag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:700;background:var(--bg);color:var(--fg);white-space:nowrap}
+
+/* row action buttons */
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.abtn{display:inline-flex;align-items:center;height:30px;padding:0 11px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-size:.8125rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.abtn:hover{border-color:var(--ink-500);background:#faf7f5}
+.abtn.pri{background:var(--rose-deep);border-color:var(--rose-deep);color:#fff}
+.abtn.pri:hover{background:#73344a}
+.asel{height:32px;max-width:220px;padding:0 8px;border:1px solid var(--field,#cfc6c0);border-radius:6px;background:#fff;font-size:.8125rem;color:var(--ink)}
+.asel:focus{outline:none;border-color:var(--rose-dark);box-shadow:0 0 0 3px rgba(184,92,120,.2)}
+.appr-tbl .empty{text-align:center;color:var(--ink-500);padding:22px}
+@media (max-width:519px){ .appr-seg button{flex:1 1 auto;justify-content:center} }

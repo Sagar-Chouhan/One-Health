@@ -1,0 +1,54 @@
+/* National Situation at a Glance — four pillar cards (Human, Animal, Environment, Wildlife) with community volunteer (COHV) figures.
+   Used on dashboard.html (homepage). Same language as the homepage: solid coloured heads, white tiles, dark text, 8-10px radius. */
+.gl{margin-top:40px}
+.gl-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px 28px;padding:18px 22px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 2px rgba(31,42,68,.04)}
+.gl-top h2{font-size:1.25rem;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:var(--ink)}
+.gl-top h2 .hi{display:block;margin-top:2px;font-size:.875rem;font-weight:500;color:var(--rose-deep);letter-spacing:0}
+.gl-top p{margin:6px 0 0;font-size:.9375rem;line-height:1.5;color:var(--ink-700)}
+.pfilter{display:flex;gap:6px;margin:0;padding:0;border:0;overflow-x:auto;scrollbar-width:none;max-width:100%}
+.pfilter::-webkit-scrollbar{display:none}
+.pfilter button{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink-700);font-size:.8125rem;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.pfilter button:hover{border-color:var(--ink-500)}
+.pfilter button i{width:9px;height:9px;border-radius:2px;background:var(--fc)}
+.pfilter button[aria-pressed="true"]{background:var(--rose-deep);border-color:var(--rose-deep);color:#fff}
+.pfilter button[aria-pressed="true"] i{outline:2px solid #fff}
+
+.gl-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));justify-content:center;gap:20px;margin-top:16px}
+.gc{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.gl-cards.focus{grid-template-columns:minmax(0,360px)}   /* a chosen pillar shows only its own card, centred */
+.gl-cards.focus .gc:not(.on){display:none}
+.gc-h{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--pc);color:#fff}
+.gc-h .ico{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:8px;background:rgba(255,255,255,.18)}
+.gc-h .ico svg{width:20px;height:20px;color:#fff}
+.gc-h .t{min-width:0;flex:1}
+.gc-h .t b{display:block;font-size:1rem;font-weight:700;line-height:1.2}
+.gc-h .t small{display:block;margin-top:1px;font-size:.75rem;font-weight:500;opacity:.9}
+.gc-b{display:flex;flex-direction:column;flex:1;padding:18px 18px 4px}
+.gc-k{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px}
+.gc-k b{font-size:2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--ink)}
+.gc-k span{font-size:.875rem;color:var(--ink-700)}
+.gc-s{margin:6px 0 0;font-size:.8125rem;color:var(--ink-600)}
+.gc-s b{font-weight:700;color:var(--ink)}
+.gc-p{margin-top:16px}
+.gc-p div{display:flex;justify-content:space-between;gap:12px;font-size:.8125rem;color:var(--ink-700)}
+.gc-p b{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.gc-p i{display:block;height:8px;margin-top:6px;border-radius:2px;background:var(--line-2)}
+.gc-p i::after{content:"";display:block;width:var(--w);height:100%;border-radius:2px;background:var(--pc)}
+.gc-g{display:grid;grid-template-columns:1fr 1fr;margin:18px -18px 0;padding:0;border-top:1px solid var(--line-2)}
+.gc-g div{padding:12px 18px;border-bottom:1px solid var(--line-2)}
+.gc-g div:nth-child(odd){border-right:1px solid var(--line-2)}
+.gc-g dt{font-size:.8125rem;color:var(--ink-600)}
+.gc-g dd{margin:2px 0 0;font-size:1.25rem;font-weight:800;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.gl-src{display:flex;align-items:center;gap:7px;margin:12px 2px 0;font-size:.8125rem;color:var(--ink-600)}
+.gl-src svg.i{width:14px;height:14px;color:var(--ink-500)}
+
+@media (max-width:899px){
+  .gl-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:639px){
+  .gl-cards{grid-template-columns:minmax(0,440px);gap:14px}
+}
+@media (max-width:767px){
+  .gl-top{padding:16px}
+  .pfilter{margin:0 -16px;padding:0 16px;max-width:none;width:calc(100% + 32px)}
+}
