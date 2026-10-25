@@ -285,36 +285,37 @@ def test_volunteer_summary_endpoints(monkeypatch):
     # 1. Query by volunteer code on /api/volunteers/summary
     res1 = client.get("/api/volunteers/summary?volunteer_id=COHV-26-0017")
     assert res1.status_code == 200
-    assert res1.json()["total_visits"] == 24
-    assert res1.json()["referrals"] == 16
-    assert res1.json()["pending_follow_ups"] == 7
     assert res1.json()["data"]["total_visits"] == 24
+    assert res1.json()["data"]["referrals"] == 16
+    assert res1.json()["data"]["pending_follow_ups"] == 7
+    assert "total_visits" not in res1.json()
 
     # 2. Query by volunteer code on singular /api/volunteer/summary (Mobile App)
     res2 = client.get("/api/volunteer/summary?volunteer_id=COHV-26-0017")
     assert res2.status_code == 200
-    assert res2.json()["total_visits"] == 24
+    assert res2.json()["data"]["total_visits"] == 24
     assert res2.json()["data"]["awareness"] == 6
+    assert "total_visits" not in res2.json()
 
     # 3. Path ID on /api/volunteers/101/summary
     res3 = client.get("/api/volunteers/101/summary")
     assert res3.status_code == 200
-    assert res3.json()["volunteer_id"] == 101
+    assert res3.json()["data"]["volunteer_id"] == 101
 
     # 4. Path ID on singular /api/volunteer/101/summary
     res4 = client.get("/api/volunteer/101/summary")
     assert res4.status_code == 200
-    assert res4.json()["volunteer_id"] == 101
+    assert res4.json()["data"]["volunteer_id"] == 101
 
     # 5. Subpath ID on /api/volunteers/summary/101 (used by mobile app)
     res5 = client.get("/api/volunteers/summary/101")
     assert res5.status_code == 200
-    assert res5.json()["volunteer_id"] == 101
+    assert res5.json()["data"]["volunteer_id"] == 101
 
     # 6. Subpath ID on singular /api/volunteer/summary/101 (Mobile App)
     res6 = client.get("/api/volunteer/summary/101")
     assert res6.status_code == 200
-    assert res6.json()["volunteer_id"] == 101
+    assert res6.json()["data"]["volunteer_id"] == 101
 
     # 7. Unauthenticated request without volunteer_id returns 401 Unauthorized
     res_unauth = client.get("/api/volunteers/summary")

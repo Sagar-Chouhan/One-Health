@@ -247,7 +247,6 @@ def get_my_summary(
         "success": True,
         "message": "Volunteer summary fetched successfully",
         "data": summary,
-        **summary,
     }
 
 
@@ -303,7 +302,6 @@ def get_volunteer_summary_endpoint(
         "success": True,
         "message": "Volunteer summary fetched successfully",
         "data": summary,
-        **summary,
     }
 
 
@@ -340,7 +338,6 @@ def get_volunteer_summary_by_subpath(
         "success": True,
         "message": "Volunteer summary fetched successfully",
         "data": summary,
-        **summary,
     }
 
 
@@ -388,7 +385,6 @@ def get_volunteer_summary_by_id(
         "success": True,
         "message": "Volunteer summary fetched successfully",
         "data": summary,
-        **summary,
     }
 
 

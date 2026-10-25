@@ -381,7 +381,7 @@ class VolunteerSummaryData(BaseModel):
 
 
 class VolunteerSummaryResponse(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="ignore")
 
     success: bool = True
     message: str = "Volunteer summary fetched successfully"
