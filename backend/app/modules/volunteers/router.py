@@ -251,36 +251,51 @@ def get_volunteer_by_id(
 async def _parse_profile_update(request: Request) -> tuple[dict[str, Any], Any]:
     content_type = request.headers.get("content-type", "").lower()
     photo = None
-    if "multipart/form-data" in content_type or "application/x-www-form-urlencoded" in content_type:
-        form = await request.form()
-        fields: dict[str, Any] = {}
-        for key, value in form.multi_items():
-            k = key.strip()
-            if k in ("photo", "profile_photo", "image", "file"):
-                if hasattr(value, "filename") and value.filename:
-                    photo = value
-                elif isinstance(value, str) and value:
-                    photo = value
-            else:
-                fields[k] = value
+    fields: dict[str, Any] = {}
+
+    if "multipart" in content_type or "form-urlencoded" in content_type:
         try:
-            validated = VolunteerProfileUpdate.model_validate(fields)
-        except ValidationError as exc:
-            raise RequestValidationError(errors=exc.errors()) from exc
-        payload = validated.model_dump(exclude_unset=True)
+            form = await request.form()
+            for key, value in form.multi_items():
+                k = key.strip()
+                if k in ("photo", "profile_photo", "image", "file"):
+                    if hasattr(value, "filename") and value.filename:
+                        photo = value
+                    elif isinstance(value, str) and value:
+                        photo = value
+                else:
+                    fields[k] = value
+        except Exception as e:
+            logger.warning("Failed to parse form in _parse_profile_update: %s", e)
     else:
         try:
             body = await request.json()
-            if not isinstance(body, dict):
-                body = {}
+            if isinstance(body, dict):
+                fields = body
+                photo = body.get("photo")
         except Exception:
-            body = {}
-        try:
-            validated = VolunteerProfileUpdate.model_validate(body)
-        except ValidationError as exc:
-            raise RequestValidationError(errors=exc.errors()) from exc
-        payload = validated.model_dump(exclude_unset=True)
-        photo = getattr(validated, "photo", None) or body.get("photo")
+            try:
+                form = await request.form()
+                for key, value in form.multi_items():
+                    k = key.strip()
+                    if k in ("photo", "profile_photo", "image", "file"):
+                        if hasattr(value, "filename") and value.filename:
+                            photo = value
+                        elif isinstance(value, str) and value:
+                            photo = value
+                    else:
+                        fields[k] = value
+            except Exception:
+                fields = {}
+
+    try:
+        validated = VolunteerProfileUpdate.model_validate(fields)
+    except ValidationError as exc:
+        raise RequestValidationError(errors=exc.errors()) from exc
+
+    payload = validated.model_dump(exclude_unset=True)
+    if not photo:
+        photo = getattr(validated, "photo", None)
 
     return payload, photo
 

@@ -389,12 +389,12 @@ class VolunteerProfileUpdate(BaseModel):
         if isinstance(values, dict):
             cleaned = {}
             for k, v in values.items():
-                if v in ("", "null", "undefined", "None"):
+                if v in ("", "null", "undefined", "None", None):
                     cleaned[k] = None
                 else:
                     cleaned[k] = v
 
-            # Zero values for optional foreign keys/IDs should be treated as None
+            # Numeric ID fields: convert string digits to int, ignore empty/invalid strings
             for fk_field in (
                 "department_id",
                 "supervisor_id",
@@ -407,13 +407,27 @@ class VolunteerProfileUpdate(BaseModel):
                 "gram_panchayat_lgd_code",
                 "village_lgd_code",
             ):
-                if cleaned.get(fk_field) in (0, "0"):
+                val = cleaned.get(fk_field)
+                if val in (0, "0", "null", "undefined", "None", "", None):
                     cleaned[fk_field] = None
+                elif isinstance(val, str):
+                    s_val = val.strip()
+                    if s_val.isdigit():
+                        cleaned[fk_field] = int(s_val)
+                    else:
+                        cleaned[fk_field] = None
 
             # Clean and parse date fields if they are strings
             for d_field in ("date_of_birth", "date_of_joining"):
-                if d_field in cleaned and cleaned[d_field]:
-                    cleaned[d_field] = _parse_date_if_str(cleaned[d_field])
+                val = cleaned.get(d_field)
+                if val:
+                    parsed = _parse_date_if_str(val)
+                    try:
+                        if isinstance(parsed, str):
+                            date.fromisoformat(parsed)
+                        cleaned[d_field] = parsed
+                    except Exception:
+                        cleaned[d_field] = None
 
             # Map gender if provided
             if "gender" in cleaned and cleaned["gender"]:
