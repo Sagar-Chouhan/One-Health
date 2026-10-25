@@ -2,6 +2,7 @@ import logging
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
@@ -185,6 +186,47 @@ def health_check(db: Session = Depends(get_db)):
         "application": "OneHealth Volunteer API",
         "database": "connected",
     }
+
+
+@app.get("/api", include_in_schema=False)
+@app.get("/api/", include_in_schema=False)
+def api_root():
+    return {
+        "status": "online",
+        "name": "OneHealth Volunteer API",
+        "docs": "/docs",
+        "swagger": "/api/docs",
+    }
+
+
+@app.get("/api/docs", include_in_schema=False)
+@app.get("/api/docs/", include_in_schema=False)
+@app.get("/api/swagger", include_in_schema=False)
+@app.get("/swagger", include_in_schema=False)
+@app.get("/api/documentation", include_in_schema=False)
+@app.get("/api/v1/docs", include_in_schema=False)
+async def swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url="/api/openapi.json",
+        title=f"{app.title} - Swagger UI",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
+    )
+
+
+@app.get("/api/openapi.json", include_in_schema=False)
+@app.get("/api/openapi", include_in_schema=False)
+@app.get("/api/schema", include_in_schema=False)
+async def openapi_json():
+    return JSONResponse(app.openapi())
+
+
+@app.get("/api/redoc", include_in_schema=False)
+async def redoc_html():
+    return get_redoc_html(
+        openapi_url="/api/openapi.json",
+        title=f"{app.title} - ReDoc",
+    )
 
 
 app.include_router(auth_router)
