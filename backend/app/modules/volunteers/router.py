@@ -290,9 +290,46 @@ def get_volunteer_summary_endpoint(
 
     if resolved_id is None and not resolved_code:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Please provide a volunteer_id/volunteer_code or sign in.",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Please provide a volunteer_id/volunteer_code or sign in.",
         )
+
+    summary = service.get_volunteer_summary(
+        db,
+        volunteer_id=resolved_id,
+        volunteer_code=resolved_code,
+    )
+    return {
+        "success": True,
+        "message": "Volunteer summary fetched successfully",
+        "data": summary,
+        **summary,
+    }
+
+
+@router.get(
+    "/summary/{volunteer_id}",
+    response_model=VolunteerSummaryResponse,
+    status_code=status.HTTP_200_OK,
+)
+@singular_router.get(
+    "/summary/{volunteer_id}",
+    response_model=VolunteerSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+def get_volunteer_summary_by_subpath(
+    volunteer_id: str = Path(..., description="The volunteer ID (integer) or code (e.g. COHV-26-0017)"),
+    db: Session = Depends(get_db),
+):
+    """Fetch performance KPI summary for a volunteer by path ID or volunteer code (e.g. /summary/50)."""
+    resolved_id = None
+    resolved_code = None
+    v_str = str(volunteer_id).strip()
+    if v_str.isdigit():
+        resolved_id = int(v_str)
+    else:
+        resolved_code = v_str
 
     summary = service.get_volunteer_summary(
         db,

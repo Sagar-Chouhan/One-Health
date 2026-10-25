@@ -98,9 +98,14 @@ def login(
     token, expires_in = create_access_token(volunteer_id, volunteer["volunteer_code"])
     logger.info("Volunteer %s signed in", volunteer["volunteer_code"])
 
+    profile = repository.get_profile(db, volunteer_id)
     return {
+        "success": True,
+        "message": "Login successful",
         "access_token": token,
+        "token": token,
         "token_type": "bearer",
         "expires_in": expires_in,
-        "volunteer": repository.get_profile(db, volunteer_id),
+        "volunteer": profile,
+        **profile,
     }

@@ -306,5 +306,50 @@ def test_volunteer_summary_endpoints(monkeypatch):
     assert res4.status_code == 200
     assert res4.json()["volunteer_id"] == 101
 
+    # 5. Subpath ID on /api/volunteers/summary/101 (used by mobile app)
+    res5 = client.get("/api/volunteers/summary/101")
+    assert res5.status_code == 200
+    assert res5.json()["volunteer_id"] == 101
+
+    # 6. Subpath ID on singular /api/volunteer/summary/101 (Mobile App)
+    res6 = client.get("/api/volunteer/summary/101")
+    assert res6.status_code == 200
+    assert res6.json()["volunteer_id"] == 101
+
+    # 7. Unauthenticated request without volunteer_id returns 401 Unauthorized
+    res_unauth = client.get("/api/volunteers/summary")
+    assert res_unauth.status_code == 401
+    assert "Authentication required" in res_unauth.json()["detail"]
+
+
+def test_auth_login_with_identifier(monkeypatch):
+    from app.modules.auth import service
+
+    mock_resp = {
+        "access_token": "mock-token-xyz",
+        "token": "mock-token-xyz",
+        "token_type": "bearer",
+        "expires_in": 3600,
+        "volunteer": {
+            "volunteer_id": 50,
+            "volunteer_code": "COHV-26-0050",
+            "volunteer_name": "Test Volunteer",
+            "mobile_no": "9568452369",
+            "email": "test@example.com",
+            "status": "ACTIVE",
+        },
+    }
+    monkeypatch.setattr(service, "login", lambda db, data, ip_address=None, user_agent=None: mock_resp)
+
+    client = TestClient(app)
+    # Flutter app sends identifier and pin
+    resp = client.post("/api/auth/login", json={"identifier": "9568452369", "pin": "1234"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["access_token"] == "mock-token-xyz"
+    assert data["token"] == "mock-token-xyz"
+    assert data["volunteer"]["volunteer_id"] == 50
+
+
 
 
