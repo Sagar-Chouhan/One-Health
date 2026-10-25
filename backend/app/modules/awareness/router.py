@@ -1,8 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Path, status
+from fastapi import APIRouter, Depends, Form, Path, Request, status
 from sqlalchemy.orm import Session
 
+from app.modules.events.attachments import parse_multipart_or_json
 from app.database.session import get_db
 from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor, get_optional_actor
 from app.modules.awareness import repository, service
@@ -72,12 +73,10 @@ def get_awareness_activity(
 
 
 @router.post("", response_model=AwarenessActivityResponse, status_code=status.HTTP_201_CREATED)
-def create_awareness_activity(
-    data: Annotated[
-        AwarenessActivityCreate,
-        Form(media_type="multipart/form-data"),
-    ],
+async def create_awareness_activity(
+    request: Request,
     volunteer_id: int = Depends(get_current_volunteer_id),
     db: Session = Depends(get_db),
 ):
+    data = await parse_multipart_or_json(request, AwarenessActivityCreate)
     return service.create_activity(db, volunteer_id, data)

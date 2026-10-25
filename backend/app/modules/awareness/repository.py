@@ -3,6 +3,8 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.modules.events import attachments
+
 
 def active_activity(db: Session, activity_id: int) -> dict[str, Any] | None:
     row = db.execute(text("""
@@ -141,34 +143,7 @@ def list_page(db: Session, volunteer_id: int, filters: dict[str, Any]) -> tuple[
         LIMIT :limit OFFSET :offset
     """), params).mappings().all()
     items = [dict(row) for row in rows]
-    if items:
-        attachment_rows = db.execute(
-            text(
-                """
-                SELECT attachment_id, entity_id, file_kind, file_name,
-                       storage_path, mime_type, size_bytes, caption
-                FROM public.attachment
-                WHERE volunteer_id = :volunteer_id
-                  AND entity_type = 'AWARENESS_ACTIVITY'
-                  AND entity_id = ANY(:awareness_ids)
-                ORDER BY attachment_id
-                """
-            ),
-            {
-                "volunteer_id": volunteer_id,
-                "awareness_ids": [item["awareness_id"] for item in items],
-            },
-        ).mappings().all()
-        attachments_by_activity: dict[int, list[dict]] = {}
-        for attachment in attachment_rows:
-            item = dict(attachment)
-            awareness_id = item.pop("entity_id")
-            attachments_by_activity.setdefault(awareness_id, []).append(item)
-        for item in items:
-            item["attachments"] = attachments_by_activity.get(
-                item["awareness_id"],
-                [],
-            )
+    attachments.attach_to_items(db, "AWARENESS_ACTIVITY", items, "awareness_id")
     return items, int(total)
 
 
@@ -213,31 +188,7 @@ def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any
 def add_attachments(db: Session, volunteer_id: int | None, items: list[dict]) -> None:
     if not items:
         return
-    att_where = "WHERE entity_type = 'AWARENESS_ACTIVITY' AND entity_id = ANY(:entity_ids)"
-    params: dict[str, Any] = {"entity_ids": [item["awareness_id"] for item in items]}
-    if volunteer_id is not None:
-        att_where += " AND volunteer_id = :volunteer_id"
-        params["volunteer_id"] = volunteer_id
-
-    rows = db.execute(
-        text(
-            f"""
-            SELECT attachment_id, entity_id, file_kind, file_name,
-                   storage_path, mime_type, size_bytes, caption
-            FROM public.attachment
-            {att_where}
-            ORDER BY attachment_id
-            """
-        ),
-        params,
-    ).mappings().all()
-    grouped: dict[int, list[dict]] = {}
-    for row in rows:
-        attachment = dict(row)
-        entity_id = attachment.pop("entity_id")
-        grouped.setdefault(entity_id, []).append(attachment)
-    for item in items:
-        item["attachments"] = grouped.get(item["awareness_id"], [])
+    attachments.attach_to_items(db, "AWARENESS_ACTIVITY", items, "awareness_id")
 
 
 def list_activity_types(db: Session) -> list[dict[str, Any]]:

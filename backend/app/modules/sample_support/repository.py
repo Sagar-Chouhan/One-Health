@@ -3,6 +3,8 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.modules.events import attachments
+
 
 def list_types(db: Session) -> list[dict[str, Any]]:
     return [
@@ -123,7 +125,11 @@ def get_one(db: Session, volunteer_id: int, sample_id: int) -> dict[str, Any] | 
         ),
         {"volunteer_id": volunteer_id, "sample_id": sample_id},
     ).mappings().one_or_none()
-    return dict(row) if row else None
+    if not row:
+        return None
+    item = dict(row)
+    item["attachments"] = attachments.get_attachments_for_entity(db, "SAMPLE_SUPPORT", sample_id)
+    return item
 
 
 def list_page(
@@ -188,7 +194,9 @@ def list_page(
         ),
         params,
     ).mappings().all()
-    return [dict(row) for row in rows], int(total)
+    items = [dict(row) for row in rows]
+    attachments.attach_to_items(db, "SAMPLE_SUPPORT", items, "sample_id")
+    return items, int(total)
 
 
 def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any]]:
@@ -207,7 +215,7 @@ def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any
         text(
             f"""
             SELECT s.sample_id, s.sample_code, s.volunteer_id,
-                   vr.volunteer_name, vr.department_name, s.sample_type_id,
+                   vr.volunteer_name, vr.department_name, vr.department_name AS cohv_type, s.sample_type_id,
                    stm.sample_type_name, s.sample_date, s.sample_count,
                    s.village_lgd_code, vh.village_name,
                    s.verification_status, s.captured_at, s.created_at
@@ -218,5 +226,7 @@ def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any
         ),
         params,
     ).mappings().all()
-    return [dict(row) for row in rows]
+    items = [dict(row) for row in rows]
+    attachments.attach_to_items(db, "SAMPLE_SUPPORT", items, "sample_id")
+    return items
 

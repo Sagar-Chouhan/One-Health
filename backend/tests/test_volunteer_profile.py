@@ -151,18 +151,29 @@ def test_get_login_history_endpoints(monkeypatch):
 
     client = TestClient(app)
 
-    # Test singular route with volunteer code (client request in user prompt)
-    resp1 = client.get("/api/volunteer/login-history?volunteer_id=COHV-26-0017")
+    # Test canonical route with volunteer code
+    resp1 = client.get("/api/volunteers/login-history?volunteer_id=COHV-26-0017")
     assert resp1.status_code == 200
     assert resp1.json()["success"] is True
     assert len(resp1.json()["data"]) == 1
     assert resp1.json()["data"][0]["volunteer_code"] == "COHV-26-0017"
 
-    # Test plural route with integer volunteer ID
+    # Test canonical route with integer volunteer ID
     resp2 = client.get("/api/volunteers/login-history?volunteer_id=101")
     assert resp2.status_code == 200
     assert resp2.json()["success"] is True
     assert len(resp2.json()["data"]) == 1
+
+    # Verify singular route used by Flutter mobile app succeeds
+    resp_sing = client.get("/api/volunteer/login-history?volunteer_id=COHV-26-0017")
+    assert resp_sing.status_code == 200
+    assert resp_sing.json()["success"] is True
+    assert len(resp_sing.json()["data"]) == 1
+    assert resp_sing.json()["data"][0]["volunteer_code"] == "COHV-26-0017"
+
+    resp_sing_int = client.get("/api/volunteer/login-history?volunteer_id=101")
+    assert resp_sing_int.status_code == 200
+    assert resp_sing_int.json()["success"] is True
 
 
 def test_edit_volunteer_profile_endpoint(monkeypatch):
@@ -181,8 +192,62 @@ def test_edit_volunteer_profile_endpoint(monkeypatch):
     assert resp.status_code == 200
     assert resp.json()["volunteer_name"] == "Sita Sharma"
 
-    # Singular route edit by query param volunteer_id
+    # Edit by query param volunteer_id on canonical /api/volunteers/profile
+    resp_prof = client.put("/api/volunteers/profile?volunteer_id=101", json={"volunteer_name": "Sita Sharma"})
+    assert resp_prof.status_code == 200
+    assert resp_prof.json()["volunteer_name"] == "Sita Sharma"
+
+    # Verify singular route succeeds for mobile app compatibility
     resp_sing = client.put("/api/volunteer/profile?volunteer_id=101", json={"volunteer_name": "Sita Sharma"})
     assert resp_sing.status_code == 200
     assert resp_sing.json()["volunteer_name"] == "Sita Sharma"
+
+
+def test_edit_volunteer_profile_multipart(monkeypatch):
+    from app.modules.volunteers import service
+
+    captured = {}
+    def mock_edit(db, volunteer_id, data, photo=None):
+        captured["volunteer_id"] = volunteer_id
+        captured["data"] = data
+        captured["photo"] = photo
+        return {**SAMPLE_PROFILE, **data, "volunteer_id": volunteer_id}
+
+    monkeypatch.setattr(service, "edit_volunteer_profile", mock_edit)
+
+    client = TestClient(app)
+    # Form data sent by Flutter Dart client:
+    form_data = {
+        "volunteer_name": "Sudha Yadav",
+        "gender": "Female",
+        "date_of_birth": "2001-10-15",
+        "mobile_no": "9632147805",
+        "email": "sudha123@gmail.com",
+        "institution_type_id": "3",
+        "institution_name": "PHC",
+        "education_id": "1",
+        "profession_id": "1",
+        "state_lgd_code": "36",
+        "district_lgd_code": "694",
+        "block_lgd_code": "5208",
+        "gram_panchayat_lgd_code": "9000002",
+        "village_lgd_code": "90000004",
+    }
+    resp = client.put("/api/volunteers/51", data=form_data)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert data["message"] == "Volunteer profile updated successfully"
+    assert data["volunteer_id"] == 51
+    assert data["volunteer_name"] == "Sudha Yadav"
+    assert "data" in data and isinstance(data["data"], dict)
+    assert data["data"]["volunteer_id"] == 51
+    assert data["data"]["volunteer_name"] == "Sudha Yadav"
+    assert data["data"]["gender"] == "FEMALE"
+    assert captured["volunteer_id"] == 51
+    assert captured["data"]["volunteer_name"] == "Sudha Yadav"
+    assert captured["data"]["gender"] == "FEMALE"
+    assert captured["data"]["institution_type_id"] == 3
+    assert captured["data"]["district_lgd_code"] == 694
+
 

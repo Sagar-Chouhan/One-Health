@@ -1,10 +1,11 @@
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.modules.events.attachments import parse_multipart_or_json
 from app.core.security import decode_access_token
 from app.database.session import get_db
 from app.modules.auth import repository as auth_repo
@@ -53,17 +54,20 @@ def fetch_facilities(
     response_model=ReferralResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def post_referral(
-    data: Annotated[ReferralCreate, Form(media_type="multipart/form-data")],
+async def post_referral(
+    request: Request,
+    actor: dict | None = Depends(get_optional_actor),
     db: Session = Depends(get_db),
 ):
+    data = await parse_multipart_or_json(request, ReferralCreate)
+    if actor and actor.get("role") == "COHV" and actor.get("volunteer_id"):
+        data.volunteer_id = actor["volunteer_id"]
     return create_referral(
         db=db,
         data=data,
     )
 
 
-@router.get("", response_model=ReferralAllResponse, status_code=status.HTTP_200_OK)
 @router.get("/all", response_model=ReferralAllResponse, status_code=status.HTTP_200_OK)
 def list_all_referral_records(
     volunteer_id: int | None = Query(default=None, description="Optional volunteer ID to filter records"),

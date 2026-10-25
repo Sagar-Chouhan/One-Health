@@ -3,6 +3,8 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.modules.events import attachments
+
 
 def active_department(db: Session, department_id: int) -> dict[str, Any] | None:
     row = db.execute(
@@ -116,7 +118,13 @@ def get_one(
         ),
         {"volunteer_id": volunteer_id, "story_id": story_id},
     ).mappings().one_or_none()
-    return dict(row) if row else None
+    if not row:
+        return None
+    item = dict(row)
+    item["attachments"] = attachments.get_attachments_for_entity(
+        db, "SUCCESS_STORY", story_id
+    )
+    return item
 
 
 def list_page(
@@ -175,7 +183,9 @@ def list_page(
         ),
         params,
     ).mappings().all()
-    return [dict(row) for row in rows], int(total)
+    items = [dict(row) for row in rows]
+    attachments.attach_to_items(db, "SUCCESS_STORY", items, "story_id")
+    return items, int(total)
 
 
 def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any]]:
@@ -195,4 +205,6 @@ def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any
         ),
         params,
     ).mappings().all()
-    return [dict(row) for row in rows]
+    items = [dict(row) for row in rows]
+    attachments.attach_to_items(db, "SUCCESS_STORY", items, "story_id")
+    return items

@@ -268,13 +268,17 @@ def create_event_report(db: Session, volunteer_id: int, data: EventReportForm) -
             "Event report could not be submitted. Please try again.",
         ) from exc
 
+    att_list = attachments.get_attachments_for_entity(db, "EVENT_REPORT", event["event_report_id"])
     return {
         "message": "Event report submitted. Awaiting verification.",
         "event_report_id": event["event_report_id"],
         "event_report_code": event["event_report_code"],
         "verification_status": event["verification_status"],
         "alert_code": alert_code,
-        "attachments": len(ready_files),
+        "attachments": att_list,
+        "photos": [a for a in att_list if a.get("file_kind") == "IMAGE"],
+        "videos": [a for a in att_list if a.get("file_kind") == "VIDEO"],
+        "documents": [a for a in att_list if a.get("file_kind") == "DOCUMENT"],
         "duplicate": False,
     }
 

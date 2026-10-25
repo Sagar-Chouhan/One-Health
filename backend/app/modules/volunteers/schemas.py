@@ -1,7 +1,7 @@
 import re
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import UploadFile
 from pydantic import (
@@ -257,7 +257,12 @@ class VolunteerProfileResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
         str_strip_whitespace=True,
+        extra="allow",
     )
+
+    success: bool = True
+    message: str = "Volunteer profile fetched successfully"
+    data: dict[str, Any] | None = None
 
     volunteer_id: int
     volunteer_code: str
@@ -268,28 +273,28 @@ class VolunteerProfileResponse(BaseModel):
     email: str
 
     department_id: int | None = None
-    department_name: str
-    cohv_type: str
+    department_name: str | None = None
+    cohv_type: str | None = None
     institution_type_id: int | None = None
     institution_type_name: str | None = None
     institution_name: str | None = None
     other_institution_name: str | None = None
 
-    state_lgd_code: int
+    state_lgd_code: int | None = None
     state_name: str | None = None
-    district_lgd_code: int
+    district_lgd_code: int | None = None
     district_name: str | None = None
-    block_lgd_code: int
+    block_lgd_code: int | None = None
     block_name: str | None = None
-    gram_panchayat_lgd_code: int
+    gram_panchayat_lgd_code: int | None = None
     gram_panchayat_name: str | None = None
-    village_lgd_code: int
+    village_lgd_code: int | None = None
     village_name: str | None = None
 
-    date_of_joining: date
-    education_id: int
+    date_of_joining: date | None = None
+    education_id: int | None = None
     education_name: str | None = None
-    profession_id: int
+    profession_id: int | None = None
     profession_name: str | None = None
 
     supervisor_id: int | None = None
@@ -298,7 +303,9 @@ class VolunteerProfileResponse(BaseModel):
     supervisor_email: str | None = None
 
     photo_path: str | None = None
-    status: str
+    photo_url: str | None = None
+    photo: str | None = None
+    status: str | None = None
     status_remarks: str | None = None
     approved_by: int | None = None
     approved_by_name: str | None = None
@@ -311,8 +318,8 @@ class VolunteerProfileResponse(BaseModel):
     device_id: str | None = None
 
     last_login_at: datetime | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     # Dynamic KPI and activity counters
     total_visits: int = 0
@@ -347,15 +354,72 @@ class VolunteerProfileUpdate(BaseModel):
     date_of_birth: date | None = None
     mobile_no: str | None = None
     email: str | None = None
+    department_id: int | None = Field(default=None, gt=0)
+    department_name: str | None = None
+    cohv_type: str | None = None
     institution_type_id: int | None = Field(default=None, gt=0)
     institution_name: str | None = Field(default=None, max_length=200)
     other_institution_name: str | None = Field(default=None, max_length=200)
     education_id: int | None = Field(default=None, gt=0)
     profession_id: int | None = Field(default=None, gt=0)
+    supervisor_id: int | None = Field(default=None, gt=0)
     state_lgd_code: int | None = Field(default=None, gt=0)
     district_lgd_code: int | None = Field(default=None, gt=0)
     block_lgd_code: int | None = Field(default=None, gt=0)
     gram_panchayat_lgd_code: int | None = Field(default=None, gt=0)
     village_lgd_code: int | None = Field(default=None, gt=0)
-    photo: UploadFile | None = None
+    date_of_joining: date | None = None
+    pin: str | None = None
+    device_id: str | None = None
+    status: str | None = None
+    status_remarks: str | None = None
+    latitude: Decimal | None = None
+    longitude: Decimal | None = None
+    reg_latitude: Decimal | None = None
+    reg_longitude: Decimal | None = None
+    gps_accuracy_m: int | None = None
+    reg_gps_accuracy_m: int | None = None
+    gps_unavailable_reason: str | None = None
+    reg_gps_unavailable_reason: str | None = None
+    photo: Any | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def blank_means_missing(cls, values):
+        if isinstance(values, dict):
+            cleaned = {}
+            for k, v in values.items():
+                if v in ("", "null", "undefined", "None"):
+                    cleaned[k] = None
+                else:
+                    cleaned[k] = v
+
+            # Zero values for optional foreign keys/IDs should be treated as None
+            for fk_field in (
+                "department_id",
+                "supervisor_id",
+                "institution_type_id",
+                "education_id",
+                "profession_id",
+                "state_lgd_code",
+                "district_lgd_code",
+                "block_lgd_code",
+                "gram_panchayat_lgd_code",
+                "village_lgd_code",
+            ):
+                if cleaned.get(fk_field) in (0, "0"):
+                    cleaned[fk_field] = None
+
+            # Clean and parse date fields if they are strings
+            for d_field in ("date_of_birth", "date_of_joining"):
+                if d_field in cleaned and cleaned[d_field]:
+                    cleaned[d_field] = _parse_date_if_str(cleaned[d_field])
+
+            # Map gender if provided
+            if "gender" in cleaned and cleaned["gender"]:
+                g_str = str(cleaned["gender"]).strip().lower()
+                cleaned["gender"] = GENDER_CODES.get(g_str, str(cleaned["gender"]).upper())
+
+            return cleaned
+        return values
 

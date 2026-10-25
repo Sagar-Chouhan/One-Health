@@ -98,33 +98,7 @@ def list_referrals(
     ).mappings().all()
     items = [dict(row) for row in rows]
     if items:
-        attachment_rows = db.execute(
-            text(
-                """
-                SELECT attachment_id, entity_id, file_kind, file_name,
-                       storage_path, mime_type, size_bytes, caption
-                FROM public.attachment
-                WHERE volunteer_id = :volunteer_id
-                  AND entity_type = 'REFERRAL'
-                  AND entity_id = ANY(:referral_ids)
-                ORDER BY attachment_id
-                """
-            ),
-            {
-                "volunteer_id": owner_volunteer_id,
-                "referral_ids": [item["referral_id"] for item in items],
-            },
-        ).mappings().all()
-        attachments_by_referral: dict[int, list[dict]] = {}
-        for attachment in attachment_rows:
-            item = dict(attachment)
-            referral_id = item.pop("entity_id")
-            attachments_by_referral.setdefault(referral_id, []).append(item)
-        for item in items:
-            item["attachments"] = attachments_by_referral.get(
-                item["referral_id"],
-                [],
-            )
+        _add_referral_attachments(db, owner_volunteer_id, items)
     return {
         "success": True,
         "message": "Records fetched successfully",
@@ -275,21 +249,11 @@ def get_referral_by_id(
                 )
 
     # 5. Fetch associated attachments
-    attachment_rows = db.execute(
-        text(
-            """
-            SELECT attachment_id, file_kind, file_name,
-                   storage_path, mime_type, size_bytes, caption
-            FROM public.attachment
-            WHERE entity_type = 'REFERRAL'
-              AND entity_id = :referral_id
-            ORDER BY attachment_id
-            """
-        ),
-        {"referral_id": referral_id},
-    ).mappings().all()
-    data["attachments"] = [dict(att) for att in attachment_rows]
-
+    att_list = attachments.get_attachments_for_entity(db, "REFERRAL", referral_id)
+    data["attachments"] = att_list
+    data["photos"] = [a for a in att_list if a.get("file_kind") == "IMAGE"]
+    data["videos"] = [a for a in att_list if a.get("file_kind") == "VIDEO"]
+    data["documents"] = [a for a in att_list if a.get("file_kind") == "DOCUMENT"]
     return data
 
 
@@ -300,31 +264,7 @@ def _add_referral_attachments(
 ) -> None:
     if not items:
         return
-    where_extra = "AND volunteer_id = :volunteer_id" if volunteer_id is not None else ""
-    params: dict = {"entity_ids": [item["referral_id"] for item in items]}
-    if volunteer_id is not None:
-        params["volunteer_id"] = volunteer_id
-    rows = db.execute(
-        text(
-            f"""
-            SELECT attachment_id, entity_id, file_kind, file_name,
-                   storage_path, mime_type, size_bytes, caption
-            FROM public.attachment
-            WHERE entity_type = 'REFERRAL'
-              AND entity_id = ANY(:entity_ids)
-              {where_extra}
-            ORDER BY attachment_id
-            """
-        ),
-        params,
-    ).mappings().all()
-    grouped: dict[int, list[dict]] = {}
-    for row in rows:
-        attachment = dict(row)
-        entity_id = attachment.pop("entity_id")
-        grouped.setdefault(entity_id, []).append(attachment)
-    for item in items:
-        item["attachments"] = grouped.get(item["referral_id"], [])
+    attachments.attach_to_items(db, "REFERRAL", items, "referral_id")
 
 
 def validate_facility(
@@ -533,8 +473,17 @@ def create_referral(
 
         # Refresh after commit.
         db.refresh(referral)
-
-        return referral
+        referral_dict = {
+            c.name: getattr(referral, c.name) for c in referral.__table__.columns
+        }
+        att_list = attachments.get_attachments_for_entity(
+            db, "REFERRAL", referral.referral_id
+        )
+        referral_dict["attachments"] = att_list
+        referral_dict["photos"] = [a for a in att_list if a.get("file_kind") == "IMAGE"]
+        referral_dict["videos"] = [a for a in att_list if a.get("file_kind") == "VIDEO"]
+        referral_dict["documents"] = [a for a in att_list if a.get("file_kind") == "DOCUMENT"]
+        return referral_dict
 
     except IntegrityError as exc:
         db.rollback()
@@ -575,3 +524,7 @@ def create_referral(
                 "message": ("Referral could not be saved. Please try again."),
             },
         ) from exc
+    except Exception:
+        db.rollback()
+        attachments.delete_files("referrals", referral.referral_code)
+        raise

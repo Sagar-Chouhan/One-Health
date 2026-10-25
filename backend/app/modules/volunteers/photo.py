@@ -22,17 +22,44 @@ def _detect_image_type(head: bytes) -> str | None:
     return None
 
 
-def read_photo(upload: UploadFile | None) -> tuple[bytes, str] | None:
+import base64
+from typing import Any
+
+
+def read_photo(upload: Any | None) -> tuple[bytes, str] | None:
     """Validate the uploaded photo and return (bytes, extension), or None
     when no photo was sent. Raises 422 for a bad file."""
-    if upload is None or not upload.filename:
+    if upload is None:
         return None
 
-    # Read one byte past the cap so an oversized file is caught without
-    # loading all of it into memory.
-    data = upload.file.read(MAX_PHOTO_BYTES + 1)
+    data: bytes | None = None
+    if hasattr(upload, "filename") and hasattr(upload, "file"):
+        if not upload.filename:
+            return None
+        # Read one byte past the cap so an oversized file is caught without
+        # loading all of it into memory.
+        data = upload.file.read(MAX_PHOTO_BYTES + 1)
+    elif isinstance(upload, dict):
+        raw_b64 = upload.get("base64") or upload.get("data") or upload.get("content") or ""
+        if isinstance(raw_b64, str) and "," in raw_b64 and "base64" in raw_b64:
+            raw_b64 = raw_b64.split(",", 1)[1]
+        if raw_b64:
+            try:
+                data = base64.b64decode(raw_b64)
+            except Exception:
+                raise HTTPException(status_code=422, detail="Invalid base64 image data.")
+    elif isinstance(upload, str) and upload.strip():
+        raw_b64 = upload.strip()
+        if "," in raw_b64 and "base64" in raw_b64:
+            raw_b64 = raw_b64.split(",", 1)[1]
+        try:
+            data = base64.b64decode(raw_b64)
+        except Exception:
+            raise HTTPException(status_code=422, detail="Invalid base64 image data.")
+
     if not data:
         return None
+
     if len(data) > MAX_PHOTO_BYTES:
         raise HTTPException(
             status_code=422,

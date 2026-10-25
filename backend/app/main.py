@@ -21,7 +21,9 @@ from app.modules.locations.router import router as locations_router
 from app.modules.supervisors.router import router as supervisors_router
 from app.modules.sample_support.router import router as sample_support_router
 from app.modules.success_stories.router import router as success_stories_router
-from app.modules.volunteers.router import router as volunteers_router, singular_router as volunteer_singular_router
+from app.modules.volunteers.router import router as volunteers_router, singular_router as singular_volunteers_router
+from app.modules.capacity_building.router import router as capacity_building_router
+from app.modules.attachments.router import router as attachments_router
 
 from contextlib import asynccontextmanager
 
@@ -190,12 +192,14 @@ app.include_router(departments_router)
 app.include_router(locations_router)
 app.include_router(supervisors_router)
 app.include_router(volunteers_router)
-app.include_router(volunteer_singular_router)
+app.include_router(singular_volunteers_router)
 app.include_router(events_router)
 app.include_router(referrals_router)
 app.include_router(awareness_router)
 app.include_router(sample_support_router)
 app.include_router(success_stories_router)
+app.include_router(capacity_building_router)
+app.include_router(attachments_router)
 
 settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")

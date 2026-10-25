@@ -1,8 +1,11 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
+from fastapi import UploadFile
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from app.modules.events.attachments import AttachmentResponse
 
 
 Status = Literal[
@@ -18,7 +21,7 @@ class SampleTypeResponse(BaseModel):
 
 
 class SampleSupportCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    model_config = ConfigDict(extra="ignore", str_strip_whitespace=True)
 
     volunteer_id: int = Field(gt=0)
     client_ref: str | None = Field(default=None, min_length=1, max_length=64)
@@ -32,6 +35,16 @@ class SampleSupportCreate(BaseModel):
     gps_accuracy_m: int | None = Field(default=None, ge=0)
     gps_unavailable_reason: str | None = Field(default=None, max_length=200)
     captured_at: datetime | None = None
+    photos: list[Any] = Field(default_factory=list)
+    videos: list[Any] = Field(default_factory=list)
+    documents: list[Any] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def blank_means_missing(cls, values):
+        if isinstance(values, dict):
+            return {k: v for k, v in values.items() if v != ""}
+        return values
 
     @model_validator(mode="after")
     def validate_gps_and_date(self):
@@ -53,7 +66,8 @@ class SampleSupportItem(BaseModel):
     sample_code: str
     volunteer_id: int
     volunteer_name: str
-    cohv_type: str
+    cohv_type: str | None = None
+    department_name: str | None = None
     sample_type_id: int
     sample_type_name: str
     sample_date: date
@@ -63,6 +77,20 @@ class SampleSupportItem(BaseModel):
     verification_status: str
     captured_at: datetime
     created_at: datetime
+    photos: list[AttachmentResponse] = Field(default_factory=list)
+    videos: list[AttachmentResponse] = Field(default_factory=list)
+    documents: list[AttachmentResponse] = Field(default_factory=list)
+    attachments: list[AttachmentResponse] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_type_and_department(cls, data):
+        if isinstance(data, dict):
+            c_type = data.get("cohv_type") or data.get("department_name") or ""
+            d_name = data.get("department_name") or data.get("cohv_type") or ""
+            data["cohv_type"] = c_type
+            data["department_name"] = d_name
+        return data
 
 
 class SampleSupportResponse(BaseModel):

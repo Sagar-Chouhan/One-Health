@@ -1,8 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Path, Query, status
+from fastapi import APIRouter, Depends, Form, Path, Query, Request, status
 from sqlalchemy.orm import Session
 
+from app.modules.events.attachments import parse_multipart_or_json
 from app.database.session import get_db
 from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor, get_optional_actor
 from app.modules.events import service
@@ -86,11 +87,12 @@ def get_event_report_record(
     response_model=EventReportResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def submit_event_report(
-    data: Annotated[EventReportForm, Form(media_type="multipart/form-data")],
+async def submit_event_report(
+    request: Request,
     volunteer_id: int = Depends(get_current_volunteer_id),
     db: Session = Depends(get_db),
 ):
     """Submit an event report with its photos, videos and documents. The
     Primary sector is taken from the volunteer's COHV type, not the request."""
+    data = await parse_multipart_or_json(request, EventReportForm)
     return service.create_event_report(db, volunteer_id, data)

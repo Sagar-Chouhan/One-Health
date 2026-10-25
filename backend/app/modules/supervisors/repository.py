@@ -172,41 +172,30 @@ def team_summary(db: Session, supervisor_id: int) -> dict[str, Any]:
                 "WHERE volunteer_id = ANY(:ids) AND verification_status = ANY(:pending)"
             )
         counts["awaiting_verification"] = awaiting
-
-        # Total visits: sum of total_visits recorded on event reports, with fallback to report count if total_visits is null/0
+        # Total visits: exact count of records in event_report table
         counts["total_visits"] = scalar(
-            """
-            SELECT COALESCE(SUM(CASE WHEN total_visits IS NOT NULL AND total_visits > 0 THEN total_visits ELSE 1 END), 0)
-            FROM public.event_report
-            WHERE volunteer_id = ANY(:ids)
-            """
+            "SELECT count(*) FROM public.event_report WHERE volunteer_id = ANY(:ids)"
         )
 
-        # Alerts generated: count true values in event_report.alert_generated, combined with alert table
-        alerts_from_events = scalar(
-            "SELECT count(*) FROM public.event_report WHERE volunteer_id = ANY(:ids) AND alert_generated = TRUE"
+        # Alerts generated: exact count from alert table
+        counts["alerts_generated"] = scalar(
+            "SELECT count(*) FROM public.alert WHERE volunteer_id = ANY(:ids)"
         )
-        alerts_from_table = scalar("SELECT count(*) FROM public.alert WHERE volunteer_id = ANY(:ids)")
-        counts["alerts_generated"] = max(alerts_from_events, alerts_from_table)
 
-        open_alerts_from_table = scalar(
+        # Open alerts: exact count of OPEN alerts from alert table
+        counts["open_alerts"] = scalar(
             "SELECT count(*) FROM public.alert WHERE volunteer_id = ANY(:ids) AND closure_status = 'OPEN'"
         )
-        counts["open_alerts"] = open_alerts_from_table if open_alerts_from_table > 0 else counts["alerts_generated"]
 
-        # Referrals: count from referral table plus event reports marked with referral_generated = true
-        referrals_from_table = scalar("SELECT count(*) FROM public.referral WHERE volunteer_id = ANY(:ids)")
-        referrals_from_events = scalar(
-            "SELECT count(*) FROM public.event_report WHERE volunteer_id = ANY(:ids) AND referral_generated = TRUE"
+        # Referrals: exact count from referral table only
+        counts["referrals"] = scalar(
+            "SELECT count(*) FROM public.referral WHERE volunteer_id = ANY(:ids)"
         )
-        counts["referrals"] = referrals_from_table + referrals_from_events
 
-        # Pending follow-ups: referrals not followed up + event reports with follow_up_required = true
-        followup_from_table = scalar("SELECT count(*) FROM public.referral WHERE volunteer_id = ANY(:ids) AND NOT is_followed_up")
-        followup_from_events = scalar(
-            "SELECT count(*) FROM public.event_report WHERE volunteer_id = ANY(:ids) AND follow_up_required = TRUE"
+        # Pending follow-ups: exact count of un-followed referrals from referral table
+        counts["referrals_followup"] = scalar(
+            "SELECT count(*) FROM public.referral WHERE volunteer_id = ANY(:ids) AND NOT is_followed_up"
         )
-        counts["referrals_followup"] = followup_from_table + followup_from_events
 
         counts["samples"] = scalar("SELECT count(*) FROM public.sample_support WHERE volunteer_id = ANY(:ids)")
         counts["awareness"] = scalar("SELECT count(*) FROM public.awareness_activity WHERE volunteer_id = ANY(:ids)")
@@ -289,15 +278,7 @@ def team_members(db: Session, supervisor_id: int) -> list[dict[str, Any]]:
             ):
                 if vid in members:
                     members[vid]["activity"][metric] = n
-
-        # Also add referrals generated during event reporting
-        for vid, n in db.execute(
-            text("SELECT volunteer_id, count(*) FROM public.event_report WHERE volunteer_id = ANY(:ids) AND referral_generated = TRUE GROUP BY volunteer_id"),
-            {"ids": ids},
-        ):
-            if vid in members:
-                members[vid]["activity"]["referrals"] += n
-
+        # Exact referral counts from referral table only
     return list(members.values())
 
 

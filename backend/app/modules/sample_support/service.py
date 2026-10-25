@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.modules.events.schemas import SECTOR_OF_COHV_TYPE
 from app.modules.sample_support import repository
 from app.modules.sample_support.schemas import SampleSupportCreate
+from app.modules.events import attachments
 
 logger = logging.getLogger(__name__)
 
@@ -47,20 +48,37 @@ def create_sample(db: Session, owner_volunteer_id: int, data: SampleSupportCreat
             )
             return {"message": "Sample support already submitted.", "data": record}
 
+    ready_files = attachments.read_all(
+        {"photos": data.photos, "videos": data.videos, "documents": data.documents}
+    )
     values = data.model_dump()
+    values.pop("photos", None)
+    values.pop("videos", None)
+    values.pop("documents", None)
     if values["captured_at"] is None:
         values["captured_at"] = None
+    saved_code = None
     try:
         row = repository.insert(db, values)
+        saved_code = row["sample_code"]
+        if ready_files:
+            rows = attachments.save_files("samples", saved_code, ready_files)
+            attachments.insert_attachments(
+                db, owner_volunteer_id, "SAMPLE_SUPPORT", row["sample_id"], rows
+            )
         db.commit()
         record = repository.get_one(db, owner_volunteer_id, row["sample_id"])
         return {"message": "Sample support submitted successfully.", "data": record}
     except IntegrityError as exc:
         db.rollback()
+        if saved_code:
+            attachments.delete_files("samples", saved_code)
         logger.warning("Sample support constraint failure: %s", exc)
         raise HTTPException(409, "Sample support conflicts with an existing record.") from exc
     except SQLAlchemyError as exc:
         db.rollback()
+        if saved_code:
+            attachments.delete_files("samples", saved_code)
         logger.exception("Sample support save failed")
         raise HTTPException(500, "Sample support could not be saved.") from exc
 

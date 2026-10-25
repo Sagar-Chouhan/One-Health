@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import (
     BaseModel,
@@ -21,7 +21,7 @@ class ReferralCreate(BaseModel):
         str_strip_whitespace=True,
     )
 
-    volunteer_id: int = Field(gt=0)
+    volunteer_id: int | None = Field(default=None, gt=0)
 
     client_ref: str | None = Field(
         default=None,
@@ -84,9 +84,9 @@ class ReferralCreate(BaseModel):
     )
 
     captured_at: datetime | None = None
-    photos: list[UploadFile] = Field(default_factory=list)
-    videos: list[UploadFile] = Field(default_factory=list)
-    documents: list[UploadFile] = Field(default_factory=list)
+    photos: list[Any] = Field(default_factory=list)
+    videos: list[Any] = Field(default_factory=list)
+    documents: list[Any] = Field(default_factory=list)
 
     @model_validator(mode="before")
     @classmethod
@@ -211,6 +211,10 @@ class ReferralResponse(BaseModel):
     is_followed_up: bool
     verification_status: str
     created_at: datetime
+    photos: list["ReferralAttachment"] = Field(default_factory=list)
+    videos: list["ReferralAttachment"] = Field(default_factory=list)
+    documents: list["ReferralAttachment"] = Field(default_factory=list)
+    attachments: list["ReferralAttachment"] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -219,10 +223,12 @@ class ReferralAttachment(BaseModel):
     attachment_id: int
     file_kind: str
     file_name: str
-    storage_path: str
+    storage_path: str | None = None
     mime_type: str | None = None
     size_bytes: int
     caption: str | None = None
+    url: str | None = None
+    file_url: str | None = None
 
 
 class ReferralListItem(BaseModel):
@@ -243,6 +249,9 @@ class ReferralListItem(BaseModel):
     is_followed_up: bool
     verification_status: str
     created_at: datetime
+    photos: list[ReferralAttachment] = Field(default_factory=list)
+    videos: list[ReferralAttachment] = Field(default_factory=list)
+    documents: list[ReferralAttachment] = Field(default_factory=list)
     attachments: list[ReferralAttachment] = Field(default_factory=list)
 
 
@@ -298,6 +307,9 @@ class ReferralDetail(BaseModel):
     verification_status: str
     created_at: datetime
     updated_at: datetime | None = None
+    photos: list[ReferralAttachment] = Field(default_factory=list)
+    videos: list[ReferralAttachment] = Field(default_factory=list)
+    documents: list[ReferralAttachment] = Field(default_factory=list)
     attachments: list[ReferralAttachment] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)

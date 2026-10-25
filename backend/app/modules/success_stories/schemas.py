@@ -1,8 +1,11 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
+from fastapi import UploadFile
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from app.modules.events.attachments import AttachmentResponse
 
 
 VerificationStatus = Literal[
@@ -11,7 +14,7 @@ VerificationStatus = Literal[
 
 
 class SuccessStoryCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    model_config = ConfigDict(extra="ignore", str_strip_whitespace=True)
 
     volunteer_id: int = Field(gt=0)
     client_ref: str | None = Field(default=None, min_length=1, max_length=64)
@@ -32,6 +35,16 @@ class SuccessStoryCreate(BaseModel):
     longitude: Decimal | None = Field(default=None, ge=-180, le=180, decimal_places=6)
     gps_accuracy_m: int | None = Field(default=None, ge=0)
     gps_unavailable_reason: str | None = Field(default=None, max_length=200)
+    photos: list[Any] = Field(default_factory=list)
+    videos: list[Any] = Field(default_factory=list)
+    documents: list[Any] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def blank_means_missing(cls, values):
+        if isinstance(values, dict):
+            return {k: v for k, v in values.items() if v != ""}
+        return values
 
     @model_validator(mode="after")
     def validate_story(self):
@@ -82,6 +95,10 @@ class SuccessStoryItem(BaseModel):
     captured_at: datetime
     created_at: datetime
     updated_at: datetime
+    photos: list[AttachmentResponse] = Field(default_factory=list)
+    videos: list[AttachmentResponse] = Field(default_factory=list)
+    documents: list[AttachmentResponse] = Field(default_factory=list)
+    attachments: list[AttachmentResponse] = Field(default_factory=list)
 
 
 class SuccessStoryResponse(BaseModel):

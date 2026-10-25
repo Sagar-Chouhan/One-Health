@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, Path, status
+from fastapi import APIRouter, Depends, Path, Request, status
 from sqlalchemy.orm import Session
 
+from app.modules.events.attachments import parse_multipart_or_json
 from app.database.session import get_db
 from app.modules.auth.dependencies import get_current_volunteer_id, get_current_actor, get_optional_actor
 from app.modules.sample_support import repository, service
@@ -21,6 +22,7 @@ def sample_types(db: Session = Depends(get_db)):
 
 
 @router.get("/all", response_model=SampleSupportAllResponse, status_code=status.HTTP_200_OK)
+@router.get("", response_model=SampleSupportAllResponse, status_code=status.HTTP_200_OK, include_in_schema=False)
 def list_all_sample_support(
     volunteer_id: int | None = None,
     actor: dict | None = Depends(get_optional_actor),
@@ -67,10 +69,12 @@ def sample_support_details(
 
 
 @router.post("", response_model=SampleSupportResponse, status_code=status.HTTP_201_CREATED)
-def create_sample_support(
-    data: SampleSupportCreate,
+async def create_sample_support(
+    request: Request,
     volunteer_id: int = Depends(get_current_volunteer_id),
     db: Session = Depends(get_db),
 ):
+    data = await parse_multipart_or_json(request, SampleSupportCreate)
+    data.volunteer_id = volunteer_id
     return service.create_sample(db, volunteer_id, data)
 

@@ -1,6 +1,6 @@
 from datetime import date, datetime, time
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import UploadFile
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -61,9 +61,9 @@ class EventReportForm(BaseModel):
     # returns the record already stored instead of a duplicate.
     client_ref: str | None = Field(default=None, max_length=64)
 
-    photos: list[UploadFile] = Field(default_factory=list)
-    videos: list[UploadFile] = Field(default_factory=list)
-    documents: list[UploadFile] = Field(default_factory=list)
+    photos: list[Any] = Field(default_factory=list)
+    videos: list[Any] = Field(default_factory=list)
+    documents: list[Any] = Field(default_factory=list)
 
     @model_validator(mode="before")
     @classmethod
@@ -143,7 +143,10 @@ class EventReportResponse(BaseModel):
     event_report_code: str
     verification_status: str
     alert_code: str | None = None
-    attachments: int = 0
+    photos: list["EventAttachmentResponse"] = Field(default_factory=list)
+    videos: list["EventAttachmentResponse"] = Field(default_factory=list)
+    documents: list["EventAttachmentResponse"] = Field(default_factory=list)
+    attachments: list["EventAttachmentResponse"] | int = 0
     duplicate: bool = False
 
 
@@ -151,10 +154,12 @@ class EventAttachmentResponse(BaseModel):
     attachment_id: int
     file_kind: str
     file_name: str
-    storage_path: str
+    storage_path: str | None = None
     mime_type: str | None = None
     size_bytes: int
     caption: str | None = None
+    url: str | None = None
+    file_url: str | None = None
 
 
 class EventReportListItem(BaseModel):
@@ -188,6 +193,9 @@ class EventReportListItem(BaseModel):
     captured_at: datetime
     verification_status: str
     created_at: datetime
+    photos: list[EventAttachmentResponse] = Field(default_factory=list)
+    videos: list[EventAttachmentResponse] = Field(default_factory=list)
+    documents: list[EventAttachmentResponse] = Field(default_factory=list)
     attachments: list[EventAttachmentResponse] = Field(default_factory=list)
 
 

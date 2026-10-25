@@ -98,6 +98,14 @@ def get_volunteer_profile(
         "SELECT count(*) FROM public.awareness_activity WHERE volunteer_id = :vid"
     )
 
+    sp = data.get("photo_path")
+    if sp:
+        data["photo_url"] = f"/uploads/{sp}"
+        data["photo"] = data["photo_url"]
+    else:
+        data["photo_url"] = None
+        data["photo"] = None
+
     return data
 
 

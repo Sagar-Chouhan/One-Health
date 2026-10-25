@@ -50,10 +50,11 @@ def create_activity(db: Session, volunteer_id: int, data: AwarenessActivityCreat
             return {"message": "Awareness activity already submitted.", **existing, "duplicate": True}
 
     ready_files = attachments.read_all(
-        {"photos": data.photos, "documents": data.documents}
+        {"photos": data.photos, "videos": data.videos, "documents": data.documents}
     )
     values = data.model_dump()
     values.pop("photos", None)
+    values.pop("videos", None)
     values.pop("documents", None)
     saved_code = None
     try:
@@ -63,7 +64,18 @@ def create_activity(db: Session, volunteer_id: int, data: AwarenessActivityCreat
             rows = attachments.save_files("awareness", saved_code, ready_files)
             repository.insert_attachments(db, volunteer_id, row["awareness_id"], rows)
         db.commit()
-        return {"message": "Awareness activity submitted successfully.", **row, "duplicate": False}
+        created_attachments = attachments.get_attachments_for_entity(
+            db, "AWARENESS_ACTIVITY", row["awareness_id"]
+        )
+        return {
+            "message": "Awareness activity submitted successfully.",
+            **row,
+            "attachments": created_attachments,
+            "photos": [a for a in created_attachments if a.get("file_kind") == "IMAGE"],
+            "videos": [a for a in created_attachments if a.get("file_kind") == "VIDEO"],
+            "documents": [a for a in created_attachments if a.get("file_kind") == "DOCUMENT"],
+            "duplicate": False,
+        }
     except IntegrityError as exc:
         db.rollback()
         if saved_code:

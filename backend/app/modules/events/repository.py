@@ -3,6 +3,8 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.modules.events import attachments
+
 
 def volunteer_scope(db: Session, volunteer_id: int) -> dict[str, Any] | None:
     """The volunteer's COHV type and district - the form's Primary sector and
@@ -286,7 +288,9 @@ def list_event_reports_page(
         ),
         params,
     ).mappings().all()
-    return [dict(row) for row in rows], int(total)
+    items = [dict(row) for row in rows]
+    attachments.attach_to_items(db, "EVENT_REPORT", items, "event_report_id")
+    return items, int(total)
 
 
 def insert_event(db: Session, params: dict) -> dict[str, Any]:
@@ -411,38 +415,7 @@ def list_all(db: Session, volunteer_id: int | None = None) -> list[dict[str, Any
         params,
     ).mappings().all()
     reports = [dict(row) for row in rows]
-    if not reports:
-        return reports
-
-    att_where = "WHERE entity_type = 'EVENT_REPORT' AND entity_id = ANY(:event_ids)"
-    att_params: dict[str, Any] = {"event_ids": [row["event_report_id"] for row in reports]}
-    if volunteer_id is not None:
-        att_where += " AND volunteer_id = :volunteer_id"
-        att_params["volunteer_id"] = volunteer_id
-
-    attachment_rows = db.execute(
-        text(
-            f"""
-            SELECT attachment_id, entity_id, file_kind, file_name,
-                   storage_path, mime_type, size_bytes, caption
-            FROM public.attachment
-            {att_where}
-            ORDER BY attachment_id
-            """
-        ),
-        att_params,
-    ).mappings().all()
-
-    attachments_by_report: dict[int, list[dict[str, Any]]] = {}
-    for row in attachment_rows:
-        attachment = dict(row)
-        report_id = attachment.pop("entity_id")
-        attachments_by_report.setdefault(report_id, []).append(attachment)
-
-    for report in reports:
-        report["attachments"] = attachments_by_report.get(
-            report["event_report_id"], []
-        )
+    attachments.attach_to_items(db, "EVENT_REPORT", reports, "event_report_id")
     return reports
 
 
@@ -478,18 +451,5 @@ def get_by_id(db: Session, event_report_id: int) -> dict[str, Any] | None:
     if not row:
         return None
     data = dict(row)
-    attachment_rows = db.execute(
-        text(
-            """
-            SELECT attachment_id, file_kind, file_name,
-                   storage_path, mime_type, size_bytes, caption
-            FROM public.attachment
-            WHERE entity_type = 'EVENT_REPORT'
-              AND entity_id = :event_id
-            ORDER BY attachment_id
-            """
-        ),
-        {"event_id": event_report_id},
-    ).mappings().all()
-    data["attachments"] = [dict(a) for a in attachment_rows]
+    data["attachments"] = attachments.get_attachments_for_entity(db, "EVENT_REPORT", event_report_id)
     return data

@@ -12,6 +12,11 @@ def test_get_all_sample_support():
         data = resp.json()
         assert data["success"] is True
         assert isinstance(data["data"], list)
+
+        # Root path GET /api/sample-support should also return 200
+        resp_root = client.get("/api/sample-support")
+        assert resp_root.status_code == 200
+        assert resp_root.json()["success"] is True
     finally:
         app.dependency_overrides.pop(get_current_volunteer_id, None)
 

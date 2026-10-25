@@ -74,6 +74,13 @@ def test_get_all_referrals_records():
         app.dependency_overrides.pop(get_current_volunteer_id, None)
 
 
+def test_referrals_duplicate_list_endpoint_removed():
+    client = TestClient(app)
+    # The duplicate GET /api/referrals was removed in favor of /all and /{id}
+    resp = client.get("/api/referrals")
+    assert resp.status_code in (404, 405)
+
+
 def test_validation_error_with_file_upload_returns_422_json():
     # Verify that validation errors containing UploadFile do not crash with 500 TypeError
     client = TestClient(app)

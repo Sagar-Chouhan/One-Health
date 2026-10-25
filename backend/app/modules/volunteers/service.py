@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import select, text
@@ -391,7 +392,7 @@ def edit_volunteer_profile(
     *,
     volunteer_id: int,
     data: dict,
-    photo: UploadFile | None = None,
+    photo: Any | None = None,
 ) -> dict:
     current = volunteers_repo.get_volunteer_profile(db, volunteer_id=volunteer_id)
     if not current:
@@ -402,21 +403,48 @@ def edit_volunteer_profile(
 
     allowed_fields = {
         "volunteer_name", "gender", "date_of_birth", "mobile_no", "email",
+        "department_id", "department_name", "cohv_type",
         "institution_type_id", "institution_name", "other_institution_name",
-        "education_id", "profession_id", "state_lgd_code", "district_lgd_code",
-        "block_lgd_code", "gram_panchayat_lgd_code", "village_lgd_code"
+        "education_id", "profession_id", "supervisor_id",
+        "state_lgd_code", "district_lgd_code", "block_lgd_code",
+        "gram_panchayat_lgd_code", "village_lgd_code",
+        "date_of_joining", "device_id", "status", "status_remarks",
+        "reg_latitude", "reg_longitude", "reg_gps_accuracy_m", "reg_gps_unavailable_reason"
     }
+
+    # Map aliases
+    if "latitude" in data and "reg_latitude" not in data:
+        data["reg_latitude"] = data["latitude"]
+    if "longitude" in data and "reg_longitude" not in data:
+        data["reg_longitude"] = data["longitude"]
+    if "gps_accuracy_m" in data and "reg_gps_accuracy_m" not in data:
+        data["reg_gps_accuracy_m"] = data["gps_accuracy_m"]
+    if "gps_unavailable_reason" in data and "reg_gps_unavailable_reason" not in data:
+        data["reg_gps_unavailable_reason"] = data["gps_unavailable_reason"]
+
     updates = {}
     for k, v in data.items():
         if k in allowed_fields and v is not None and v != "":
             updates[k] = v
 
-    if photo and photo.filename:
+    if "pin" in data and data["pin"]:
+        updates["pin"] = hash_pin(str(data["pin"]).strip())
+
+    if photo:
         photo_file = read_photo(photo)
         if photo_file is not None:
             saved_photo = save_photo(current["volunteer_code"], *photo_file)
             updates["photo_path"] = saved_photo
 
     updated_profile = volunteers_repo.update_volunteer_profile(db, volunteer_id, updates)
+    if updated_profile:
+        sp = updated_profile.get("photo_path")
+        if sp:
+            updated_profile["photo_url"] = f"/uploads/{sp}"
+            updated_profile["photo"] = updated_profile["photo_url"]
+        else:
+            updated_profile["photo_url"] = None
+            updated_profile["photo"] = None
+
     return updated_profile
 

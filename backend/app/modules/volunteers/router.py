@@ -1,7 +1,9 @@
-from typing import Annotated
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, Query, Request, UploadFile, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.core.security import decode_access_token
@@ -32,8 +34,9 @@ router = APIRouter(
 
 singular_router = APIRouter(
     prefix="/api/volunteer",
-    tags=["Volunteers"],
+    include_in_schema=False,
 )
+
 
 # Both endpoints take the registration form as multipart/form-data, so the
 # app can post the same form to either one (preview simply has no photo).
@@ -47,6 +50,11 @@ logger = logging.getLogger(__name__)
 @router.post(
     "/preview-id",
     response_model=VolunteerCodePreviewResponse,
+)
+@singular_router.post(
+    "/preview-id",
+    response_model=VolunteerCodePreviewResponse,
+    include_in_schema=False,
 )
 def preview_id(
     data: Annotated[VolunteerRegistrationRequest, Form(media_type="multipart/form-data")],
@@ -68,6 +76,12 @@ def preview_id(
     "/register",
     response_model=VolunteerRegistrationResponse,
     status_code=status.HTTP_201_CREATED,
+)
+@singular_router.post(
+    "/register",
+    response_model=VolunteerRegistrationResponse,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False,
 )
 def create_volunteer(
     # multipart, not urlencoded: it carries a file, and Swagger only offers
@@ -100,13 +114,20 @@ def create_volunteer(
 @singular_router.get(
     "/me",
     response_model=VolunteerProfileResponse,
+    include_in_schema=False,
 )
 def get_my_profile(
     volunteer_id: int = Depends(get_current_volunteer_id),
     db: Session = Depends(get_db),
 ):
     """Get the full profile of the currently signed-in volunteer."""
-    return get_volunteer_profile(db, volunteer_id=volunteer_id)
+    profile = get_volunteer_profile(db, volunteer_id=volunteer_id)
+    return {
+        "success": True,
+        "message": "Volunteer profile fetched successfully",
+        "data": profile,
+        **profile,
+    }
 
 
 @router.get(
@@ -116,6 +137,7 @@ def get_my_profile(
 @singular_router.get(
     "/profile",
     response_model=VolunteerProfileResponse,
+    include_in_schema=False,
 )
 def get_profile(
     volunteer_id: int | None = Query(default=None, gt=0, description="Volunteer ID"),
@@ -139,7 +161,13 @@ def get_profile(
             detail="Please provide a volunteer_id, volunteer_code, or sign in.",
         )
 
-    return get_volunteer_profile(db, volunteer_id=resolved_id, volunteer_code=volunteer_code)
+    profile = get_volunteer_profile(db, volunteer_id=resolved_id, volunteer_code=volunteer_code)
+    return {
+        "success": True,
+        "message": "Volunteer profile fetched successfully",
+        "data": profile,
+        **profile,
+    }
 
 
 @router.get(
@@ -151,6 +179,7 @@ def get_profile(
     "/login-history",
     response_model=LoginHistoryResponse,
     status_code=status.HTTP_200_OK,
+    include_in_schema=False,
 )
 def get_volunteer_login_history(
     volunteer_id: str | None = Query(
@@ -197,43 +226,69 @@ def get_volunteer_login_history(
 
 
 @router.get(
-    "/profile/{volunteer_id}",
-    response_model=VolunteerProfileResponse,
-    include_in_schema=False,
-)
-@router.get(
     "/{volunteer_id}",
     response_model=VolunteerProfileResponse,
 )
 @singular_router.get(
-    "/profile/{volunteer_id}",
-    response_model=VolunteerProfileResponse,
-    include_in_schema=False,
-)
-@singular_router.get(
     "/{volunteer_id}",
     response_model=VolunteerProfileResponse,
+    include_in_schema=False,
 )
 def get_volunteer_by_id(
     volunteer_id: int = Path(..., gt=0, description="The volunteer ID"),
     db: Session = Depends(get_db),
 ):
     """Get volunteer profile by ID."""
-    return get_volunteer_profile(db, volunteer_id=volunteer_id)
+    profile = get_volunteer_profile(db, volunteer_id=volunteer_id)
+    return {
+        "success": True,
+        "message": "Volunteer profile fetched successfully",
+        "data": profile,
+        **profile,
+    }
+
+
+async def _parse_profile_update(request: Request) -> tuple[dict[str, Any], Any]:
+    content_type = request.headers.get("content-type", "").lower()
+    photo = None
+    if "multipart/form-data" in content_type or "application/x-www-form-urlencoded" in content_type:
+        form = await request.form()
+        fields: dict[str, Any] = {}
+        for key, value in form.multi_items():
+            k = key.strip()
+            if k in ("photo", "profile_photo", "image", "file"):
+                if hasattr(value, "filename") and value.filename:
+                    photo = value
+                elif isinstance(value, str) and value:
+                    photo = value
+            else:
+                fields[k] = value
+        try:
+            validated = VolunteerProfileUpdate.model_validate(fields)
+        except ValidationError as exc:
+            raise RequestValidationError(errors=exc.errors()) from exc
+        payload = validated.model_dump(exclude_unset=True)
+    else:
+        try:
+            body = await request.json()
+            if not isinstance(body, dict):
+                body = {}
+        except Exception:
+            body = {}
+        try:
+            validated = VolunteerProfileUpdate.model_validate(body)
+        except ValidationError as exc:
+            raise RequestValidationError(errors=exc.errors()) from exc
+        payload = validated.model_dump(exclude_unset=True)
+        photo = getattr(validated, "photo", None) or body.get("photo")
+
+    return payload, photo
 
 
 @router.put("/profile", response_model=VolunteerProfileResponse)
-@router.patch("/profile", response_model=VolunteerProfileResponse)
-@router.post("/profile", response_model=VolunteerProfileResponse)
-@router.put("/edit-profile", response_model=VolunteerProfileResponse)
-@router.post("/edit-profile", response_model=VolunteerProfileResponse)
-@singular_router.put("/profile", response_model=VolunteerProfileResponse)
-@singular_router.patch("/profile", response_model=VolunteerProfileResponse)
-@singular_router.post("/profile", response_model=VolunteerProfileResponse)
-@singular_router.put("/edit-profile", response_model=VolunteerProfileResponse)
-@singular_router.post("/edit-profile", response_model=VolunteerProfileResponse)
-def update_my_profile(
-    data: VolunteerProfileUpdate,
+@singular_router.put("/profile", response_model=VolunteerProfileResponse, include_in_schema=False)
+async def update_my_profile(
+    request: Request,
     volunteer_id: str | None = Query(default=None, description="Volunteer ID or Volunteer Code (optional if signed in)"),
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
     db: Session = Depends(get_db),
@@ -262,41 +317,46 @@ def update_my_profile(
             detail="Please provide a valid volunteer_id / volunteer_code or sign in.",
         )
 
-    return service.edit_volunteer_profile(
+    payload, photo = await _parse_profile_update(request)
+    profile = service.edit_volunteer_profile(
         db=db,
         volunteer_id=resolved_id,
-        data=data.model_dump(exclude_unset=True),
-        photo=data.photo,
+        data=payload,
+        photo=photo,
     )
+    return {
+        "success": True,
+        "message": "Volunteer profile updated successfully",
+        "data": profile,
+        **profile,
+    }
 
 
 @router.put("/{volunteer_id}", response_model=VolunteerProfileResponse)
-@router.patch("/{volunteer_id}", response_model=VolunteerProfileResponse)
-@router.post("/{volunteer_id}", response_model=VolunteerProfileResponse)
-@singular_router.put("/{volunteer_id}", response_model=VolunteerProfileResponse)
-@singular_router.patch("/{volunteer_id}", response_model=VolunteerProfileResponse)
-@singular_router.post("/{volunteer_id}", response_model=VolunteerProfileResponse)
-def update_volunteer_profile_by_id(
+@singular_router.put("/{volunteer_id}", response_model=VolunteerProfileResponse, include_in_schema=False)
+async def update_volunteer_profile_by_id(
+    request: Request,
     volunteer_id: int = Path(..., gt=0, description="The volunteer ID to update"),
-    data: VolunteerProfileUpdate = None,
     db: Session = Depends(get_db),
 ):
     """Update volunteer profile by volunteer ID."""
-    payload = data.model_dump(exclude_unset=True) if data else {}
-    return service.edit_volunteer_profile(
+    payload, photo = await _parse_profile_update(request)
+    profile = service.edit_volunteer_profile(
         db=db,
         volunteer_id=volunteer_id,
         data=payload,
-        photo=data.photo if data else None,
+        photo=photo,
     )
+    return {
+        "success": True,
+        "message": "Volunteer profile updated successfully",
+        "data": profile,
+        **profile,
+    }
 
 
 @router.post("/photo", response_model=VolunteerProfileResponse)
-@router.post("/profile/photo", response_model=VolunteerProfileResponse)
-@singular_router.post("/photo", response_model=VolunteerProfileResponse)
-@singular_router.post("/profile/photo", response_model=VolunteerProfileResponse)
-@router.post("/{volunteer_id}/photo", response_model=VolunteerProfileResponse)
-@singular_router.post("/{volunteer_id}/photo", response_model=VolunteerProfileResponse)
+@singular_router.post("/photo", response_model=VolunteerProfileResponse, include_in_schema=False)
 def upload_volunteer_photo(
     photo: UploadFile = File(...),
     volunteer_id: str | None = None,
@@ -327,10 +387,16 @@ def upload_volunteer_photo(
             detail="Please provide a valid volunteer_id / volunteer_code or sign in.",
         )
 
-    return service.edit_volunteer_profile(
+    profile = service.edit_volunteer_profile(
         db=db,
         volunteer_id=resolved_id,
         data={},
         photo=photo,
     )
+    return {
+        "success": True,
+        "message": "Volunteer photo updated successfully",
+        "data": profile,
+        **profile,
+    }
 

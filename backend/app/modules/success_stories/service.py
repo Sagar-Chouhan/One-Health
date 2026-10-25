@@ -6,6 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.modules.events import attachments
 from app.modules.success_stories import repository
 from app.modules.success_stories.schemas import SuccessStoryCreate
 
@@ -44,9 +45,22 @@ def create_story(
                 "data": record,
             }
 
+    ready_files = attachments.read_all(
+        {"photos": data.photos, "videos": data.videos, "documents": data.documents}
+    )
     values = data.model_dump()
+    values.pop("photos", None)
+    values.pop("videos", None)
+    values.pop("documents", None)
+    saved_code = None
     try:
         created = repository.insert(db, values)
+        saved_code = created["story_code"]
+        if ready_files:
+            rows = attachments.save_files("success_stories", saved_code, ready_files)
+            attachments.insert_attachments(
+                db, owner_volunteer_id, "SUCCESS_STORY", created["story_id"], rows
+            )
         db.commit()
         record = repository.get_one(db, owner_volunteer_id, created["story_id"])
         return {
@@ -55,16 +69,25 @@ def create_story(
         }
     except IntegrityError as exc:
         db.rollback()
+        if saved_code:
+            attachments.delete_files("success_stories", saved_code)
         logger.warning("Success story constraint failure: %s", exc)
         raise HTTPException(
             409, "Success story conflicts with an existing record."
         ) from exc
     except SQLAlchemyError as exc:
         db.rollback()
+        if saved_code:
+            attachments.delete_files("success_stories", saved_code)
         logger.exception("Success story save failed")
         raise HTTPException(
             500, "Success story could not be saved."
         ) from exc
+    except Exception:
+        db.rollback()
+        if saved_code:
+            attachments.delete_files("success_stories", saved_code)
+        raise
 
 
 def list_stories(db: Session, volunteer_id: int, query) -> dict:
