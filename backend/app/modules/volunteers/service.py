@@ -371,6 +371,26 @@ def get_volunteer_profile(
     return profile
 
 
+def get_volunteer_summary(
+    db: Session,
+    *,
+    volunteer_id: int | None = None,
+    volunteer_code: str | None = None,
+) -> dict:
+    """Retrieve performance KPI summary for volunteer."""
+    summary = volunteers_repo.get_volunteer_summary(
+        db,
+        volunteer_id=volunteer_id,
+        volunteer_code=volunteer_code,
+    )
+    if summary is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Volunteer summary not found.",
+        )
+    return summary
+
+
 def get_login_history(
     db: Session,
     *,

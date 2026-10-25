@@ -97,6 +97,33 @@ def get_volunteer_profile(
     data["awareness_activities"] = scalar(
         "SELECT count(*) FROM public.awareness_activity WHERE volunteer_id = :vid"
     )
+    data["awareness"] = data["awareness_activities"]
+
+    # Open alerts
+    data["open_alerts"] = scalar(
+        "SELECT count(*) FROM public.alert WHERE volunteer_id = :vid AND closure_status = 'OPEN'"
+    )
+
+    # Pending follow-ups
+    data["referrals_followup"] = scalar(
+        "SELECT count(*) FROM public.referral WHERE volunteer_id = :vid AND (is_followed_up IS NOT TRUE)"
+    )
+    data["pending_follow_ups"] = data["referrals_followup"]
+    data["pending_followups"] = data["referrals_followup"]
+
+    # Trainings
+    data["trainings_imparted"] = scalar("SELECT count(*) FROM public.training_imparted WHERE volunteer_id = :vid")
+    data["trainings_attended"] = scalar("SELECT count(*) FROM public.training_attended WHERE volunteer_id = :vid")
+
+    # Meetings
+    data["meetings"] = scalar("SELECT count(*) FROM public.meeting_attended WHERE volunteer_id = :vid")
+
+    # Samples supported
+    data["samples"] = scalar("SELECT count(*) FROM public.sample_support WHERE volunteer_id = :vid")
+    data["samples_supported"] = data["samples"]
+
+    # Success stories
+    data["success_stories"] = scalar("SELECT count(*) FROM public.success_story WHERE volunteer_id = :vid")
 
     sp = data.get("photo_path")
     if sp:
@@ -107,6 +134,38 @@ def get_volunteer_profile(
         data["photo"] = None
 
     return data
+
+
+def get_volunteer_summary(
+    db: Session,
+    *,
+    volunteer_id: int | None = None,
+    volunteer_code: str | None = None,
+) -> dict[str, Any] | None:
+    profile = get_volunteer_profile(db, volunteer_id=volunteer_id, volunteer_code=volunteer_code)
+    if not profile:
+        return None
+
+    return {
+        "volunteer_id": profile["volunteer_id"],
+        "volunteer_code": profile["volunteer_code"],
+        "volunteer_name": profile.get("volunteer_name"),
+        "total_visits": profile.get("total_visits", 0),
+        "alerts_generated": profile.get("alerts_generated", 0),
+        "open_alerts": profile.get("open_alerts", 0),
+        "referrals": profile.get("referrals", 0),
+        "referrals_followup": profile.get("referrals_followup", 0),
+        "pending_follow_ups": profile.get("pending_follow_ups", 0),
+        "pending_followups": profile.get("pending_followups", 0),
+        "awareness": profile.get("awareness_activities", 0),
+        "awareness_activities": profile.get("awareness_activities", 0),
+        "trainings_imparted": profile.get("trainings_imparted", 0),
+        "trainings_attended": profile.get("trainings_attended", 0),
+        "meetings": profile.get("meetings", 0),
+        "samples": profile.get("samples", 0),
+        "samples_supported": profile.get("samples_supported", 0),
+        "success_stories": profile.get("success_stories", 0),
+    }
 
 
 def get_login_history(

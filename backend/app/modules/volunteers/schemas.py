@@ -324,8 +324,19 @@ class VolunteerProfileResponse(BaseModel):
     # Dynamic KPI and activity counters
     total_visits: int = 0
     alerts_generated: int = 0
+    open_alerts: int = 0
     referrals: int = 0
+    referrals_followup: int = 0
+    pending_follow_ups: int = 0
+    pending_followups: int = 0
+    awareness: int = 0
     awareness_activities: int = 0
+    trainings_imparted: int = 0
+    trainings_attended: int = 0
+    meetings: int = 0
+    samples: int = 0
+    samples_supported: int = 0
+    success_stories: int = 0
 
 
 class LoginHistoryItem(BaseModel):
@@ -344,6 +355,37 @@ class LoginHistoryResponse(BaseModel):
     success: bool = True
     message: str = "Login history fetched successfully"
     data: list[LoginHistoryItem]
+
+
+class VolunteerSummaryData(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    volunteer_id: int
+    volunteer_code: str
+    volunteer_name: str | None = None
+    total_visits: int = 0
+    alerts_generated: int = 0
+    open_alerts: int = 0
+    referrals: int = 0
+    referrals_followup: int = 0
+    pending_follow_ups: int = 0
+    pending_followups: int = 0
+    awareness: int = 0
+    awareness_activities: int = 0
+    trainings_imparted: int = 0
+    trainings_attended: int = 0
+    meetings: int = 0
+    samples: int = 0
+    samples_supported: int = 0
+    success_stories: int = 0
+
+
+class VolunteerSummaryResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    success: bool = True
+    message: str = "Volunteer summary fetched successfully"
+    data: VolunteerSummaryData | None = None
 
 
 class VolunteerProfileUpdate(BaseModel):

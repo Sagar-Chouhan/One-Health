@@ -251,3 +251,60 @@ def test_edit_volunteer_profile_multipart(monkeypatch):
     assert captured["data"]["district_lgd_code"] == 694
 
 
+def test_volunteer_summary_endpoints(monkeypatch):
+    from app.modules.volunteers import service
+
+    mock_summary = {
+        "volunteer_id": 101,
+        "volunteer_code": "COHV-26-0017",
+        "volunteer_name": "Sita Devi",
+        "total_visits": 24,
+        "alerts_generated": 2,
+        "open_alerts": 1,
+        "referrals": 16,
+        "referrals_followup": 7,
+        "pending_follow_ups": 7,
+        "pending_followups": 7,
+        "awareness": 6,
+        "awareness_activities": 6,
+        "trainings_imparted": 0,
+        "trainings_attended": 0,
+        "meetings": 0,
+        "samples": 0,
+        "samples_supported": 0,
+        "success_stories": 0,
+    }
+    monkeypatch.setattr(
+        service,
+        "get_volunteer_summary",
+        lambda db, volunteer_id=None, volunteer_code=None: mock_summary,
+    )
+
+    client = TestClient(app)
+
+    # 1. Query by volunteer code on /api/volunteers/summary
+    res1 = client.get("/api/volunteers/summary?volunteer_id=COHV-26-0017")
+    assert res1.status_code == 200
+    assert res1.json()["total_visits"] == 24
+    assert res1.json()["referrals"] == 16
+    assert res1.json()["pending_follow_ups"] == 7
+    assert res1.json()["data"]["total_visits"] == 24
+
+    # 2. Query by volunteer code on singular /api/volunteer/summary (Mobile App)
+    res2 = client.get("/api/volunteer/summary?volunteer_id=COHV-26-0017")
+    assert res2.status_code == 200
+    assert res2.json()["total_visits"] == 24
+    assert res2.json()["data"]["awareness"] == 6
+
+    # 3. Path ID on /api/volunteers/101/summary
+    res3 = client.get("/api/volunteers/101/summary")
+    assert res3.status_code == 200
+    assert res3.json()["volunteer_id"] == 101
+
+    # 4. Path ID on singular /api/volunteer/101/summary
+    res4 = client.get("/api/volunteer/101/summary")
+    assert res4.status_code == 200
+    assert res4.json()["volunteer_id"] == 101
+
+
+

@@ -17,6 +17,7 @@ from app.modules.volunteers.schemas import (
     VolunteerRegistrationForm,
     VolunteerRegistrationRequest,
     VolunteerRegistrationResponse,
+    VolunteerSummaryResponse,
 )
 from app.modules.volunteers import service
 from app.modules.volunteers.service import (
@@ -226,6 +227,87 @@ def get_volunteer_login_history(
 
 
 @router.get(
+    "/me/summary",
+    response_model=VolunteerSummaryResponse,
+    status_code=status.HTTP_200_OK,
+)
+@singular_router.get(
+    "/me/summary",
+    response_model=VolunteerSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+def get_my_summary(
+    volunteer_id: int = Depends(get_current_volunteer_id),
+    db: Session = Depends(get_db),
+):
+    """Get performance KPI summary for the currently signed-in volunteer."""
+    summary = service.get_volunteer_summary(db, volunteer_id=volunteer_id)
+    return {
+        "success": True,
+        "message": "Volunteer summary fetched successfully",
+        "data": summary,
+        **summary,
+    }
+
+
+@router.get(
+    "/summary",
+    response_model=VolunteerSummaryResponse,
+    status_code=status.HTTP_200_OK,
+)
+@singular_router.get(
+    "/summary",
+    response_model=VolunteerSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+def get_volunteer_summary_endpoint(
+    volunteer_id: str | None = Query(
+        default=None,
+        description="Volunteer ID (integer) or Volunteer Code (e.g. COHV-26-0017)",
+    ),
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    db: Session = Depends(get_db),
+):
+    """Fetch performance KPI summary for a volunteer by ID, code, or session token."""
+    resolved_id = None
+    resolved_code = None
+
+    if volunteer_id:
+        v_str = str(volunteer_id).strip()
+        if v_str.isdigit():
+            resolved_id = int(v_str)
+        else:
+            resolved_code = v_str
+    elif credentials:
+        claims = decode_access_token(credentials.credentials)
+        if claims and "sub" in claims:
+            try:
+                resolved_id = int(claims["sub"])
+            except (ValueError, TypeError):
+                pass
+
+    if resolved_id is None and not resolved_code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please provide a volunteer_id/volunteer_code or sign in.",
+        )
+
+    summary = service.get_volunteer_summary(
+        db,
+        volunteer_id=resolved_id,
+        volunteer_code=resolved_code,
+    )
+    return {
+        "success": True,
+        "message": "Volunteer summary fetched successfully",
+        "data": summary,
+        **summary,
+    }
+
+
+@router.get(
     "/{volunteer_id}",
     response_model=VolunteerProfileResponse,
 )
@@ -245,6 +327,31 @@ def get_volunteer_by_id(
         "message": "Volunteer profile fetched successfully",
         "data": profile,
         **profile,
+    }
+
+
+@router.get(
+    "/{volunteer_id}/summary",
+    response_model=VolunteerSummaryResponse,
+    status_code=status.HTTP_200_OK,
+)
+@singular_router.get(
+    "/{volunteer_id}/summary",
+    response_model=VolunteerSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+def get_volunteer_summary_by_id(
+    volunteer_id: int = Path(..., gt=0, description="The volunteer ID"),
+    db: Session = Depends(get_db),
+):
+    """Fetch performance KPI summary for a volunteer by path ID."""
+    summary = service.get_volunteer_summary(db, volunteer_id=volunteer_id)
+    return {
+        "success": True,
+        "message": "Volunteer summary fetched successfully",
+        "data": summary,
+        **summary,
     }
 
 
